@@ -1,11 +1,8 @@
 #include <Arduino.h>
 #include <web.h>
+#include <secrets.h>
 
-// WiFi Configuration
-const char* ssid = "Geraldine";
-const char* password = "ripHarry2022";
-
-SimpleWebServer webServer(ssid, password);
+SimpleWebServer webServer(WIFI_SSID, WIFI_PASS);
 
 void setup()
 {
