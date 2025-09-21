@@ -44,18 +44,17 @@ bool SimpleWebServer::begin()
         return false;
     }
 
-
     // Define web server routes
     server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) { handleStatus (request); });
 
-    // Explicitly handle service worker with correct MIME type
-    server.on("/sw.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/sw.js", "application/javascript");
+    // Handle app.js with correct MIME type
+    server.on("/app.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/app.js", "application/javascript");
     });
 
-    // Handle manifest.json with correct MIME type
-    server.on("/manifest.json", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/manifest.json", "application/json");
+    // Handle style.css with correct MIME type
+    server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/style.css", "text/css");
     });
     
     // Handle icons with correct MIME types
