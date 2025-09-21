@@ -38,17 +38,39 @@ bool SimpleWebServer::begin()
     }
     
     // Initialize LittleFS
-    if (!LittleFS.begin(true)) 
+    if (!LittleFS.begin(true))
     {
         Serial.println("LittleFS Mount Failed");
         return false;
     }
+
+
+    // Define web server routes
+    server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) { handleStatus (request); });
+
+    // Explicitly handle service worker with correct MIME type
+    server.on("/sw.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/sw.js", "application/javascript");
+    });
+
+    // Handle manifest.json with correct MIME type
+    server.on("/manifest.json", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/manifest.json", "application/json");
+    });
+    
+    // Handle icons with correct MIME types
+    server.on("/icon-192.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/icon-192.png", "image/png");
+    });
+
+    server.on("/icon-512.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/icon-512.png", "image/png");
+    });
     
     // Server static files from LittleFS
     server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 
-    // Define web server routes
-    server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) { handleStatus (request); });
+    // Not found catch
     server.onNotFound([this](AsyncWebServerRequest *request) { handleNotFound(request); });
     
     // Start web server
