@@ -23,13 +23,12 @@ bool DataManager::begin()
     {
         // Load from flash
         settings.targetTemp = preferences.getFloat("targetTemp", 20.5);
-        settings.enabled = preferences.getBool("enabled", false);
+        settings.mode = preferences.getString("mode", "off");
         settings.tempOffset = preferences.getFloat("tempOffset", 0.0);
         settings.hysteresis = preferences.getFloat("hysteresis", 0.5);
         settings.minTemp = preferences.getFloat("minTemp", 10.0);
         settings.maxTemp = preferences.getFloat("maxTemp", 35.0);
 
-        settings.awayMode = preferences.getBool("awayMode", false);
         settings.awayTemp = preferences.getFloat("awayTemp", 16.0);
 
         Serial.println("Settings loaded from flash");
@@ -68,8 +67,7 @@ void DataManager::printSettings()
 {
     Serial.println("=== Thermostat Settings ===");
     Serial.printf("Target Temp: %.1f°C\n", settings.targetTemp);
-    Serial.printf("Enabled: %s\n", settings.enabled ? "Yes" : "No");
-    Serial.printf("Away Mode: %s\n", settings.awayMode ? "Yes" : "No");
+    Serial.printf("Mode: %s\n", settings.mode);
     Serial.printf("Away Temp: %.1f°C\n", settings.awayTemp);
     Serial.println("===========================");
 }
@@ -81,13 +79,12 @@ void DataManager::printSettings()
 void DataManager::setDefaults() 
 {
     settings.targetTemp = 20.5;
-    settings.enabled = false;
+    settings.mode = "off";
     settings.tempOffset = 0.0;
     settings.hysteresis = 0.5;
     settings.minTemp = 10.0;
     settings.maxTemp = 35.0;
-
-    settings.awayMode = false;
+    
     settings.awayTemp = 16.0;
     
     // Save defaults
@@ -110,14 +107,13 @@ bool DataManager::updateSettings(const ThermostatSettings& newSettings)
     
     // Save to flash
     preferences.putFloat("targetTemp", settings.targetTemp);
-    preferences.putBool("enabled", settings.enabled);
+    preferences.putString("mode", settings.mode);
     preferences.putFloat("tempOffset", settings.tempOffset);
     preferences.putFloat("hysteresis", settings.hysteresis);
     preferences.putFloat("minTemp", settings.minTemp);
     preferences.putFloat("maxTemp", settings.maxTemp);
 
     preferences.putFloat("awayTemp", settings.awayTemp);
-    preferences.putBool("awayMode", settings.awayMode);
 
     Serial.println("Settings saved to flash");
     return true;
@@ -136,27 +132,34 @@ bool DataManager::setTargetTemp(float temp)
     return true;
 }
 
-bool DataManager::setEnabled(bool enabled) 
+bool DataManager::setAwayTemp(float temp) 
 {
     if (!initialized)
         return false;
 
-    settings.enabled = enabled;
-    preferences.putBool("enabled", settings.enabled);
+    temp = constrain(temp, settings.minTemp, settings.maxTemp);
+    settings.awayTemp = temp;
+    preferences.putFloat("awayTemp", settings.awayTemp);
     
-    Serial.printf("Thermostat %s\n", enabled ? "enabled" : "disabled");
+    Serial.printf("Away temperature set to %.1f°C\n", temp);
     return true;
 }
 
-bool DataManager::setAwayMode(bool away) 
+bool DataManager::setMode(String mode) 
 {
     if (!initialized)
         return false;
+        
+    if (mode != "off" && mode != "away" && mode != "on") 
+    {
+        Serial.println("INVALID MODE!");
+        ESP.restart();
+    }
 
-    settings.awayMode = away;
-    preferences.putBool("awayMode", settings.awayMode);
+    settings.mode = mode;
+    preferences.putString("mode", settings.mode);
     
-    Serial.printf("Away mode %s\n", away ? "ON" : "OFF");
+    Serial.printf("Thermostat %s\n", mode);
     return true;
 }
 
@@ -184,17 +187,17 @@ float DataManager::getTargetTemp()
     return settings.targetTemp;
 }
 
-bool DataManager::isEnabled() 
+String DataManager::getMode() 
 {
-    return settings.enabled;
-}
-
-bool DataManager::isAwayMode() 
-{
-    return settings.awayMode;
+    return settings.mode;
 }
 
 bool DataManager::isInitialized() 
 {
     return initialized;
+}
+
+float DataManager::getAwayTemp() 
+{
+    return settings.awayTemp;
 }

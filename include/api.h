@@ -14,9 +14,12 @@ class APIHandler
         Thermostat *thermostat;
 
         String handleError(const char *errorMessage);
-        
+
         template<typename T>
         String handleGet(const char *key, T value) {
+            if (!(dataManager && dataManager->isInitialized()))
+                return handleError("Data manager not initialized");
+
             DynamicJsonDocument doc(128);
             doc["status"] = "ok";
             doc[key] = value;
@@ -25,13 +28,45 @@ class APIHandler
             return output;
         }
 
+        template<typename T>
+        String handleSet(const String& requestBody, const char *key, bool (DataManager::*setter)(T)) {
+            if (!(dataManager && dataManager->isInitialized()))
+                return handleError("Data manager not initialized");
+
+            DynamicJsonDocument doc(256);
+            DeserializationError error = deserializeJson(doc, requestBody);
+
+            if (error)
+                return handleError("Invalid JSON");
+
+            if (!doc.containsKey(key))
+                return handleError("Missing field");
+
+            T value = doc[key];
+
+            if ((dataManager->*setter)(value))
+                return handleStatus();
+            else
+                return handleError("Failed to set value");
+        }
+
     public:
         APIHandler(DataManager *dm, Thermostat *thermo);
         
         // API Endpoint Handlers
         String handleStatus();
-        String handleSetTargetTemperature(const String& requestBody);
+
+        String handleGetCurrentTemperature();
+        String handleGetCurrentHumidity();
+
         String handleGetTargetTemperature();
+        String handleSetTargetTemperature(const String& requestBody);
+
+        String handleGetAwayTemperature();
+        String handleSetAwayTemperature(const String& requestBody);
+
+        String handleGetMode();
+        String handleSetMode(const String& requestBody);
 };
 
 #endif

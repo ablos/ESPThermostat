@@ -1,0 +1,212 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.thermostat {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.current-temp {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.dial-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 40px;
+}
+
+.dial {
+    width: 100%;
+    height: 100%;
+}
+
+.dial-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.target-temp {
+    font-size: 72px;
+    font-weight: 300;
+    line-height: 1;
+    position: relative;
+}
+
+.temp-decimal {
+    font-size: 36px;
+    vertical-align: baseline;
+}
+
+.temp-unit {
+    font-size: 24px;
+    position: absolute;
+    top: 10px;
+    right: 2px;
+}
+
+.temp-label {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+.current-temp-center {
+    font-size: 18px;
+    margin-top: 15px;
+    opacity: 0.9;
+}
+
+.current-label {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+.dial-handle {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: grab;
+    touch-action: none;
+    z-index: 10;
+}
+
+.dial-handle:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+}
+
+.mode-selector {
+    display: flex;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 4px;
+}
+
+.mode-button {
+    flex: 1;
+    padding: 16px 12px;
+    border: none;
+    border-radius: 11px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.mode-button:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.mode-button.active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mode-button[data-mode="off"].active {
+    background: rgba(244, 67, 54, 0.3) !important;
+}
+
+.mode-button[data-mode="away"].active {
+    background: rgba(255, 193, 7, 0.3) !important;
+}
+
+.mode-button[data-mode="on"].active {
+    background: rgba(76, 175, 80, 0.3) !important;
+}
+
+.humidity-indicator {
+    margin-top: 30px;
+}
+
+.humidity-label {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.humidity-bar {
+    position: relative;
+    height: 40px;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.humidity-zones {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.zone-dry {
+    flex: 40;
+    background: linear-gradient(90deg, #ff6b6b 0%, #ff6b6b 50%, #feca57 80%, #4cd137 100%);
+}
+
+.zone-good {
+    flex: 20;
+    background: #4cd137;
+}
+
+.zone-humid {
+    flex: 40;
+    background: linear-gradient(90deg, #4cd137 0%, #feca57 20%, #ff6b6b 50%, #ff6b6b 100%);
+}
+
+.humidity-pointer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: left 0.3s ease;
+}
+
+.humidity-value {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+}

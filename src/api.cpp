@@ -27,8 +27,7 @@ String APIHandler::handleStatus()
     if (dataManager && dataManager->isInitialized()) 
     {
         doc["targetTemp"] = dataManager->getTargetTemp();
-        doc["enabled"] = dataManager->isEnabled();
-        doc["awayMode"] = dataManager->isAwayMode();
+        doc["mode"] = dataManager->getMode();
     }
     
     // Thermostat data
@@ -42,29 +41,50 @@ String APIHandler::handleStatus()
     return output;
 }
 
-String APIHandler::handleSetTargetTemperature(const String& requestBody) 
+
+
+String APIHandler::handleGetCurrentTemperature() 
 {
-    DynamicJsonDocument doc(256);
-    DeserializationError error = deserializeJson(doc, requestBody);
-    
-    if (error)
-        return handleError("Invalid JSON");
-
-    if (!doc.containsKey("targetTemp"))
-        return handleError("Missing targetTemp field");
-
-    float newTemp = doc["targetTemp"];
-    
-    if (dataManager && dataManager->setTargetTemp(newTemp)) 
-        return handleStatus();
-    else 
-        return handleError("Failed to set temperature");
+    return handleGet("currentTemp", thermostat->getCurrentTemp());
 }
 
-String APIHandler::handleGetTargetTemperature() 
+String APIHandler::handleGetCurrentHumidity() 
 {
-    if (!(dataManager && dataManager->isInitialized()))
-        return handleError("Data manager not initialized");
+    return handleGet("currentHumidity", thermostat->getCurrentHumidity());
+}
 
+
+
+String APIHandler::handleGetTargetTemperature()
+{
     return handleGet("targetTemp", dataManager->getTargetTemp());
+}
+
+String APIHandler::handleSetTargetTemperature(const String& requestBody)
+{
+    return handleSet<float>(requestBody, "targetTemp", &DataManager::setTargetTemp);
+}
+
+
+
+String APIHandler::handleGetAwayTemperature() 
+{
+    return handleGet("awayTemp", dataManager->getAwayTemp());
+}
+
+String APIHandler::handleSetAwayTemperature(const String& requestBody) 
+{
+    return handleSet<float>(requestBody, "awayTemp", &DataManager::setAwayTemp);
+}
+
+
+
+String APIHandler::handleGetMode()
+{
+    return handleGet("mode", dataManager->getMode());
+}
+
+String APIHandler::handleSetMode(const String& requestBody) 
+{
+    return handleSet<String>(requestBody, "mode", &DataManager::setMode);
 }

@@ -7,6 +7,7 @@
 struct ThermostatStatus 
 {
     float currentTemp = 19.0;
+    float currentHumidity = 40;
 };
 
 class Thermostat 
@@ -24,6 +25,7 @@ class Thermostat
         // Status access
         ThermostatStatus getStatus();
         float getCurrentTemp();
+        float getCurrentHumidity();
 };
 
 #endif

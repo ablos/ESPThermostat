@@ -22,3 +22,8 @@ float Thermostat::getCurrentTemp()
 {
     return status.currentTemp;
 }
+
+float Thermostat::getCurrentHumidity() 
+{
+    return status.currentHumidity;
+}

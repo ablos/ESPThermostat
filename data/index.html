@@ -1,12 +1,84 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>Hello World!</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Thermostat</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2196F3">
+    
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" href="/icon-192.png">
+    <link rel="stylesheet" href="/style.css">
 </head>
-
 <body>
-    <h1>Hello World!</h1>
-</body>
+    <div class="container">
+        <div class="thermostat">
+            <div class="dial-container">
+                <svg class="dial" viewBox="0 0 300 300">
+                    <!-- Background arc (270 degrees, open at bottom) -->
+                    <circle cx="150" cy="150" r="130"
+                            fill="none"
+                            stroke="rgba(255,255,255,0.1)"
+                            stroke-width="20"
+                            stroke-linecap="round"
+                            stroke-dasharray="612 816"
+                            transform="rotate(135 150 150)"/>
 
+                    <!-- Progress arc -->
+                    <circle id="dialProgress"
+                            cx="150" cy="150" r="130"
+                            fill="none"
+                            stroke="white"
+                            stroke-width="20"
+                            stroke-linecap="round"
+                            stroke-dasharray="612 816"
+                            stroke-dashoffset="612"
+                            transform="rotate(135 150 150)"/>
+                    
+                    <!-- Center display -->
+                    <circle cx="150" cy="150" r="100" 
+                            fill="rgba(255,255,255,0.2)"/>
+                </svg>
+                
+                <div class="dial-center">
+                    <div class="target-temp">
+                        <span id="targetTempMain">22</span><span class="temp-decimal" id="targetTempDecimal">.0</span><span class="temp-unit">°C</span>
+                    </div>
+                    <!-- <div class="temp-label">Target</div> -->
+                    <div class="current-temp-center">
+                        <span id="currentTempCenter">--</span>°C
+                    </div>
+                    <!-- <div class="current-label">Current</div> -->
+                </div>
+                
+                <div class="dial-handle" id="dialHandle"></div>
+            </div>
+            
+            <div class="mode-selector">
+                <button class="mode-button" id="offButton" data-mode="off">Off</button>
+                <button class="mode-button active" id="awayButton" data-mode="away">Away</button>
+                <button class="mode-button" id="onButton" data-mode="on">On</button>
+            </div>
+
+            <div class="humidity-indicator">
+                <div class="humidity-label">Humidity</div>
+                <div class="humidity-bar">
+                    <div class="humidity-zones">
+                        <div class="zone-dry"></div>
+                        <div class="zone-good"></div>
+                        <div class="zone-humid"></div>
+                    </div>
+                    <div class="humidity-pointer" id="humidityPointer"></div>
+                </div>
+                <div class="humidity-value" id="humidityValue">--%</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/app.js"></script>
+</body>
 </html>

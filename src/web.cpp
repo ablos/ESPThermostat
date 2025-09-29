@@ -44,25 +44,67 @@ bool SimpleWebServer::begin()
         return false;
     }
 
-    // Define web server routes
-    server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) 
+    // Define web server routes --------------------------------------------------
+    
+    server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request)
     {
         String response = apiHandler->handleStatus();
         request->send(200, "application/json", response);
     });
     
-    server.on("/api/target", HTTP_GET, [this](AsyncWebServerRequest *request) 
+    server.on("/api/temperature", HTTP_GET, [this](AsyncWebServerRequest *request) 
+    {
+       String response = apiHandler->handleGetCurrentTemperature();
+       request->send(200, "application/json", response); 
+    });
+    
+    server.on("/api/humidity", HTTP_GET, [this](AsyncWebServerRequest *request) 
+    {
+       String response = apiHandler->handleGetCurrentHumidity();
+       request->send(200, "application/json", response); 
+    });
+    
+    server.on("/api/target", HTTP_GET, [this](AsyncWebServerRequest *request)
     {
         String response = apiHandler->handleGetTargetTemperature();
         request->send(200, "application/json", response);
     });
     
-    server.on("/api/target/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total) 
+    server.on("/api/target/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total)
     {
         String requestBody = String((char*)body, len);
         String response = apiHandler->handleSetTargetTemperature(requestBody);
         request->send(200, "application/json", response);
     });
+    
+    server.on("/api/away-temp", HTTP_GET, [this](AsyncWebServerRequest *request) 
+    {
+        String response = apiHandler->handleGetAwayTemperature();
+        request->send(200, "application/json", response);
+    });
+    
+    server.on("/api/away-temp/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total) 
+    {
+        String requestBody = String((char*)body, len);
+        String response = apiHandler->handleSetAwayTemperature(requestBody);
+        request->send(200, "application/json", response);
+    });
+    
+    server.on("/api/mode", HTTP_GET, [this](AsyncWebServerRequest *request) 
+    {
+        String response = apiHandler->handleGetMode();
+        request->send(200, " application/json", response);
+    });
+    
+    server.on("/api/mode/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total) 
+    {
+       String requestBody = String((char*)body, len);
+       String response = apiHandler->handleSetMode(requestBody);
+       request->send(200, "application/json", response); 
+    });
+
+    // ---------------------------------------------------------------------------
+
 
     // Handle app.js with correct MIME type
     server.on("/app.js", HTTP_GET, [](AsyncWebServerRequest *request) {

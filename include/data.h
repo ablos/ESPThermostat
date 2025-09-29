@@ -8,14 +8,13 @@ struct ThermostatSettings
 {
     // General settings
     float targetTemp = 20.5;
-    bool enabled = false;
+    String mode = "off";
     float tempOffset = 0.0;
     float hysteresis = 0.5;
     float minTemp = 10.0;
     float maxTemp = 35.0;
 
     // Away mode settings
-    bool awayMode = false;
     float awayTemp = 16.0;
 };
 
@@ -44,14 +43,14 @@ class DataManager
         
         // Individual setting updates
         bool setTargetTemp(float temp);
-        bool setEnabled(bool enabled);
-        bool setAwayMode(bool away);
-        
+        bool setMode(String mode);
+        bool setAwayTemp(float temp);
+
         // Quick access methods
         float getTargetTemp();
-        bool isEnabled();
-        bool isAwayMode();
-        
+        String getMode();
+        float getAwayTemp();
+
         // Status
         bool isInitialized();
         void printSettings();
