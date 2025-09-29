@@ -1,6 +1,6 @@
 #include <web.h>
 
-SimpleWebServer::SimpleWebServer(const char* wifi_ssid, const char* wifi_password) : server(80), ssid(wifi_ssid), password(wifi_password) {}
+SimpleWebServer::SimpleWebServer(const char* wifi_ssid, const char* wifi_password, APIHandler* api) : server(80), ssid(wifi_ssid), password(wifi_password), apiHandler(api) {}
 
 bool SimpleWebServer::begin() 
 {
@@ -45,7 +45,24 @@ bool SimpleWebServer::begin()
     }
 
     // Define web server routes
-    server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) { handleStatus (request); });
+    server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) 
+    {
+        String response = apiHandler->handleStatus();
+        request->send(200, "application/json", response);
+    });
+    
+    server.on("/api/target", HTTP_GET, [this](AsyncWebServerRequest *request) 
+    {
+        String response = apiHandler->handleGetTargetTemperature();
+        request->send(200, "application/json", response);
+    });
+    
+    server.on("/api/target/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total) 
+    {
+        String requestBody = String((char*)body, len);
+        String response = apiHandler->handleSetTargetTemperature(requestBody);
+        request->send(200, "application/json", response);
+    });
 
     // Handle app.js with correct MIME type
     server.on("/app.js", HTTP_GET, [](AsyncWebServerRequest *request) {

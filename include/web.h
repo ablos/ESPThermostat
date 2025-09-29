@@ -5,10 +5,12 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
+#include <api.h>
 
 class SimpleWebServer {
 private:
     AsyncWebServer server;
+    APIHandler* apiHandler;
     const char* ssid;
     const char* password;
 
@@ -17,7 +19,7 @@ private:
     void handleNotFound(AsyncWebServerRequest *request);
 
 public:
-    SimpleWebServer(const char* wifi_ssid, const char* wifi_password);
+    SimpleWebServer(const char* wifi_ssid, const char* wifi_password, APIHandler* api);
 
     bool begin();
     bool isConnected();
