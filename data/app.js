@@ -1,8 +1,10 @@
 // Temperature settings
-const MIN_TEMP = 10;
-const MAX_TEMP = 35;
+let MIN_TEMP = 10;
+let MAX_TEMP = 35;
 let currentTargetTemp = 22;
-let currentMode = 'away'; // 'off', 'away', 'on'
+let currentEcoTemp = 16;
+let currentTemp = null;
+let currentMode = 'eco'; // 'off', 'eco', 'on'
 
 // DOM elements
 const dialHandle = document.getElementById('dialHandle');
@@ -24,75 +26,132 @@ const circumference = 2 * Math.PI * radius * (270 / 360); // 270 degrees of the 
 let isDragging = false;
 
 // Initialize
-updateDial(currentTargetTemp);
+updateDialForMode();
 updateModeButtons();
 loadStatus();
-loadHumidity();
 
 // Load status from API
-async function loadStatus() {
-    try {
+async function loadStatus() 
+{
+    try 
+    {
         const response = await fetch('/api/status');
         const data = await response.json();
         
-        if (data.status === 'ok') 
+        if (data.status === 'ok')
         {
             currentTargetTemp = data.targetTemp || 22;
-            currentMode = data.mode || 'away';
-
-            updateDial(currentTargetTemp);
-            updateModeButtons();
+            currentEcoTemp = data.ecoTemp || 16;
+            currentMode = data.mode || 'eco';
+            MIN_TEMP = data.minTemp || 10;
+            MAX_TEMP = data.maxTemp || 35;
             
-            if (data.currentTemp) 
+            if (data.currentTemp)
             {
+                currentTemp = data.currentTemp;
                 const currentTempValue = data.currentTemp.toFixed(1);
-                currentTempCenterDisplay.textContent = currentTempValue;
+                currentTempCenterDisplay.textContent = currentTempValue + "°C";
             }
-            else 
+            else
             {
+                currentTemp = null;
                 currentTempCenterDisplay.textContent = "--";
             }
+            
+            if (data.humidity)
+                updateHumidity(data.humidity);
+                
+            updateDialForMode();
+            updateModeButtons();
         }
-    } catch (error) {
+    }
+    catch (error) 
+    {
         console.error('Failed to load status:', error);
     }
 }
 
 // Update temperature on server
-async function updateTemperature(temp) {
-    try {
-        const response = await fetch('/api/target/set', {
+async function updateTemperature(temp) 
+{
+    try 
+    {
+        const response = await fetch('/api/target/set', 
+        {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ targetTemp: temp })
         });
         
         const data = await response.json();
-        if (data.status === 'ok') {
+        
+        if (data.status === 'ok')
             console.log('Temperature updated successfully');
-        }
-    } catch (error) {
+    }
+    catch (error) 
+    {
         console.error('Failed to update temperature:', error);
     }
 }
 
+// Update dial visuals based on current mode
+function updateDialForMode()
+{
+    if (currentMode === 'off')
+    {
+        // In off mode: hide slider, show current temp in target temp position, hide center temp
+        dialHandle.style.display = 'none';
+        dialProgress.style.display = 'none';
+        currentTempCenterDisplay.style.display = 'none';
+
+        if (currentTemp !== null)
+        {
+            const mainTemp = Math.floor(currentTemp);
+            const decimal = (currentTemp - mainTemp).toFixed(1).substring(1);
+            targetTempMainDisplay.textContent = mainTemp;
+            targetTempDecimalDisplay.textContent = decimal;
+        }
+        else
+        {
+            targetTempMainDisplay.textContent = '--';
+            targetTempDecimalDisplay.textContent = '.-';
+        }
+    }
+    else if (currentMode === 'eco')
+    {
+        // In eco mode: hide slider, show eco temp
+        dialHandle.style.display = 'none';
+        dialProgress.style.display = 'none';
+        currentTempCenterDisplay.style.display = 'block';
+        updateDial(currentEcoTemp);
+    }
+    else
+    {
+        // In on mode: show slider, show target temp
+        dialHandle.style.display = 'block';
+        dialProgress.style.display = 'block';
+        currentTempCenterDisplay.style.display = 'block';
+        updateDial(currentTargetTemp);
+    }
+}
+
 // Update dial visuals
-function updateDial(temp) {
-    currentTargetTemp = temp;
+function updateDial(temp)
+{
     const mainTemp = Math.floor(temp);
     const decimal = (temp - mainTemp).toFixed(1).substring(1); // Get ".X" format
 
     targetTempMainDisplay.textContent = mainTemp;
     targetTempDecimalDisplay.textContent = decimal;
-    
+
     // Calculate progress (0-100%)
     const tempRange = MAX_TEMP - MIN_TEMP;
-    const progress = (currentTargetTemp - MIN_TEMP) / tempRange;
-    
+    const progress = (temp - MIN_TEMP) / tempRange;
+
     // Update progress arc
     const dashOffset = circumference - (progress * circumference);
     dialProgress.style.strokeDashoffset = dashOffset;
-    
+
     // Update handle position
     // Use 270 degrees total range, starting at 135 degrees (bottom-left)
     const angle = (progress * 270) + 135;
@@ -107,12 +166,18 @@ function updateDial(temp) {
 }
 
 // Handle dragging
-function startDrag(e) {
+function startDrag(e)
+{
+    // Don't allow dragging in eco mode
+    if (currentMode === 'eco')
+        return;
+
     isDragging = true;
     e.preventDefault();
 }
 
-function drag(e) {
+function drag(e)
+{
     if (!isDragging) return;
     e.preventDefault();
 
@@ -133,13 +198,13 @@ function drag(e) {
 
     // The valid range is 0-270 degrees in our coordinate system
     // The gap is from 270-360 degrees (bottom area)
-    if (angle > 270) {
+    if (angle > 270)
+    {
         // If in the gap area, snap to nearest valid end
-        if (angle <= 315) {
+        if (angle <= 315)
             angle = 270; // Snap to right end (bottom-right)
-        } else {
+        else
             angle = 0; // Snap to left end (bottom-left)
-        }
     }
 
     // Ensure we stay within 0-270 range
@@ -155,44 +220,55 @@ function drag(e) {
     updateDial(roundedTemp);
 }
 
-function stopDrag() {
-    if (isDragging) {
+function stopDrag()
+{
+    if (isDragging)
+    {
         isDragging = false;
-        updateTemperature(currentTargetTemp); // Already rounded to 0.5 degrees
+        updateTemperature(currentTargetTemp);
     }
 }
 
 // Update mode on server
-async function updateMode(mode) {
-    try {
-        const response = await fetch('/api/mode/set', {
+async function updateMode(mode)
+{
+    try
+    {
+        const response = await fetch('/api/mode/set',
+        {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mode: mode })
         });
 
         const data = await response.json();
-        if (data.status === 'ok') {
+        
+        if (data.status === 'ok')
             console.log('Mode updated successfully');
-        }
-    } catch (error) {
+    }
+    catch (error)
+    {
         console.error('Failed to update mode:', error);
     }
 }
 
 // Mode selection
-function selectMode(mode) {
+function selectMode(mode)
+{
     currentMode = mode;
     updateModeButtons();
+    updateDialForMode();
     updateMode(mode);
 }
 
-function updateModeButtons() {
-    modeButtons.forEach(button => {
+function updateModeButtons()
+{
+    modeButtons.forEach(button =>
+    {
         button.classList.remove('active');
-        if (button.dataset.mode === currentMode) {
+        
+        if (button.dataset.mode === currentMode)
             button.classList.add('active');
-        }
     });
 }
 
@@ -206,28 +282,14 @@ document.addEventListener('touchmove', drag);
 document.addEventListener('mouseup', stopDrag);
 document.addEventListener('touchend', stopDrag);
 
-modeButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        selectMode(button.dataset.mode);
-    });
+modeButtons.forEach(button =>
+{
+    button.addEventListener('click', () => { selectMode(button.dataset.mode); });
 });
 
-// Load humidity from API
-async function loadHumidity() {
-    try {
-        const response = await fetch('/api/humidity');
-        const data = await response.json();
-
-        if (data.status === 'ok' && data.currentHumidity !== undefined) {
-            updateHumidity(data.currentHumidity);
-        }
-    } catch (error) {
-        console.error('Failed to load humidity:', error);
-    }
-}
-
 // Update humidity indicator
-function updateHumidity(humidity) {
+function updateHumidity(humidity)
+{
     // Clamp humidity between 0 and 100
     humidity = Math.max(0, Math.min(100, humidity));
 
@@ -241,4 +303,3 @@ function updateHumidity(humidity) {
 
 // Auto-refresh status and humidity every 5 seconds
 setInterval(loadStatus, 5000);
-setInterval(loadHumidity, 5000);

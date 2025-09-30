@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Smart Thermostat</title>
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#2196F3">
+    <meta name="theme-color" content="#667eea">
     
     <link rel="apple-touch-icon" href="/icon-192.png">
     <link rel="icon" href="/icon-192.png">
@@ -50,7 +50,7 @@
                     </div>
                     <!-- <div class="temp-label">Target</div> -->
                     <div class="current-temp-center">
-                        <span id="currentTempCenter">--</span>°C
+                        <span id="currentTempCenter">--</span>
                     </div>
                     <!-- <div class="current-label">Current</div> -->
                 </div>
@@ -60,7 +60,7 @@
             
             <div class="mode-selector">
                 <button class="mode-button" id="offButton" data-mode="off">Off</button>
-                <button class="mode-button active" id="awayButton" data-mode="away">Away</button>
+                <button class="mode-button active" id="ecoButton" data-mode="eco">Eco</button>
                 <button class="mode-button" id="onButton" data-mode="on">On</button>
             </div>
 

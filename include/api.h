@@ -60,13 +60,19 @@ class APIHandler
         String handleGetCurrentHumidity();
 
         String handleGetTargetTemperature();
-        String handleSetTargetTemperature(const String& requestBody);
+        String handleSetTargetTemperature(const String &requestBody);
 
-        String handleGetAwayTemperature();
-        String handleSetAwayTemperature(const String& requestBody);
+        String handleGetEcoTemperature();
+        String handleSetEcoTemperature(const String &requestBody);
 
         String handleGetMode();
         String handleSetMode(const String& requestBody);
+
+        String handleGetMaxTemperature();
+        String handleSetMaxTemperature(const String &requestBody);
+
+        String handleGetMinTemperature();
+        String handleSetMinTemperature(const String &requestBody);
 };
 
 #endif

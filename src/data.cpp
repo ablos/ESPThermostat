@@ -29,7 +29,7 @@ bool DataManager::begin()
         settings.minTemp = preferences.getFloat("minTemp", 10.0);
         settings.maxTemp = preferences.getFloat("maxTemp", 35.0);
 
-        settings.awayTemp = preferences.getFloat("awayTemp", 16.0);
+        settings.ecoTemp = preferences.getFloat("ecoTemp", 16.0);
 
         Serial.println("Settings loaded from flash");
     }
@@ -57,7 +57,7 @@ bool DataManager::validateSettings()
     // Check settings
     if (settings.minTemp >= settings.maxTemp) return false;
     if (settings.targetTemp < settings.minTemp || settings.targetTemp > settings.maxTemp) return false;
-    if (settings.awayTemp < settings.minTemp || settings.awayTemp > settings.maxTemp) return false;
+    if (settings.ecoTemp < settings.minTemp || settings.ecoTemp > settings.maxTemp) return false;
     if (settings.hysteresis < 0.1 || settings.hysteresis > 5.0) return false;
 
     return true;
@@ -68,7 +68,7 @@ void DataManager::printSettings()
     Serial.println("=== Thermostat Settings ===");
     Serial.printf("Target Temp: %.1f°C\n", settings.targetTemp);
     Serial.printf("Mode: %s\n", settings.mode);
-    Serial.printf("Away Temp: %.1f°C\n", settings.awayTemp);
+    Serial.printf("Eco Temp: %.1f°C\n", settings.ecoTemp);
     Serial.println("===========================");
 }
 
@@ -85,7 +85,7 @@ void DataManager::setDefaults()
     settings.minTemp = 10.0;
     settings.maxTemp = 35.0;
     
-    settings.awayTemp = 16.0;
+    settings.ecoTemp = 16.0;
     
     // Save defaults
     updateSettings(settings);
@@ -100,8 +100,8 @@ bool DataManager::updateSettings(const ThermostatSettings& newSettings)
     ThermostatSettings temp = newSettings;
     if (temp.targetTemp < temp.minTemp) temp.targetTemp = temp.minTemp;
     if (temp.targetTemp > temp.maxTemp) temp.targetTemp = temp.maxTemp;
-    if (temp.awayTemp < temp.minTemp) temp.awayTemp = temp.minTemp;
-    if (temp.awayTemp > temp.maxTemp) temp.awayTemp = temp.maxTemp;
+    if (temp.ecoTemp < temp.minTemp) temp.ecoTemp = temp.minTemp;
+    if (temp.ecoTemp > temp.maxTemp) temp.ecoTemp = temp.maxTemp;
 
     settings = temp;
     
@@ -113,7 +113,7 @@ bool DataManager::updateSettings(const ThermostatSettings& newSettings)
     preferences.putFloat("minTemp", settings.minTemp);
     preferences.putFloat("maxTemp", settings.maxTemp);
 
-    preferences.putFloat("awayTemp", settings.awayTemp);
+    preferences.putFloat("ecoTemp", settings.ecoTemp);
 
     Serial.println("Settings saved to flash");
     return true;
@@ -132,16 +132,54 @@ bool DataManager::setTargetTemp(float temp)
     return true;
 }
 
-bool DataManager::setAwayTemp(float temp) 
+bool DataManager::setEcoTemp(float temp)
 {
     if (!initialized)
         return false;
 
     temp = constrain(temp, settings.minTemp, settings.maxTemp);
-    settings.awayTemp = temp;
-    preferences.putFloat("awayTemp", settings.awayTemp);
+    settings.ecoTemp = temp;
+    preferences.putFloat("ecoTemp", settings.ecoTemp);
+
+    Serial.printf("Eco temperature set to %.1f°C\n", temp);
+    return true;
+}
+
+bool DataManager::setMaxTemp(float temp) 
+{
+    if (!initialized)
+        return false;
+
+    temp = constrain(temp, settings.minTemp, 50);
+    settings.maxTemp = temp;
+    preferences.putFloat("maxTemp", settings.maxTemp);
     
-    Serial.printf("Away temperature set to %.1f°C\n", temp);
+    if (settings.targetTemp > settings.maxTemp) 
+    {
+        settings.targetTemp = settings.maxTemp;
+        preferences.putFloat("targetTemp", settings.targetTemp);
+    }
+    
+    Serial.printf("Max temperature set to %.1f°C\n", temp);
+    return true;
+}
+
+bool DataManager::setMinTemp(float temp) 
+{
+    if (!initialized)
+        return false;
+
+    temp = constrain(temp, 0, settings.maxTemp);
+    settings.minTemp = temp;
+    preferences.putFloat("minTemp", settings.minTemp);
+    
+    if (settings.targetTemp < settings.minTemp) 
+    {
+        settings.targetTemp = settings.minTemp;
+        preferences.putFloat("targetTemp", settings.targetTemp);
+    }
+    
+    Serial.printf("Min temperature set to %.1f°C\n", temp);
     return true;
 }
 
@@ -150,7 +188,7 @@ bool DataManager::setMode(String mode)
     if (!initialized)
         return false;
         
-    if (mode != "off" && mode != "away" && mode != "on") 
+    if (mode != "off" && mode != "eco" && mode != "on") 
     {
         Serial.println("INVALID MODE!");
         ESP.restart();
@@ -197,7 +235,17 @@ bool DataManager::isInitialized()
     return initialized;
 }
 
-float DataManager::getAwayTemp() 
+float DataManager::getEcoTemp()
 {
-    return settings.awayTemp;
+    return settings.ecoTemp;
+}
+
+float DataManager::getMaxTemp() 
+{
+    return settings.maxTemp;
+}
+
+float DataManager::getMinTemp() 
+{
+    return settings.minTemp;
 }

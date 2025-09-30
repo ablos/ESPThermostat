@@ -14,8 +14,8 @@ struct ThermostatSettings
     float minTemp = 10.0;
     float maxTemp = 35.0;
 
-    // Away mode settings
-    float awayTemp = 16.0;
+    // Eco mode settings
+    float ecoTemp = 16.0;
 };
 
 class DataManager 
@@ -44,12 +44,16 @@ class DataManager
         // Individual setting updates
         bool setTargetTemp(float temp);
         bool setMode(String mode);
-        bool setAwayTemp(float temp);
+        bool setEcoTemp(float temp);
+        bool setMaxTemp(float temp);
+        bool setMinTemp(float temp);
 
         // Quick access methods
         float getTargetTemp();
         String getMode();
-        float getAwayTemp();
+        float getEcoTemp();
+        float getMaxTemp();
+        float getMinTemp();
 
         // Status
         bool isInitialized();
