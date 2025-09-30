@@ -24,6 +24,7 @@ const radius = 130;
 const circumference = 2 * Math.PI * radius * (270 / 360); // 270 degrees of the full circle
 
 let isDragging = false;
+let lastUserInteraction = 0;
 
 // Initialize
 updateDialForMode();
@@ -31,21 +32,29 @@ updateModeButtons();
 loadStatus();
 
 // Load status from API
-async function loadStatus() 
+async function loadStatus()
 {
-    try 
+    try
     {
         const response = await fetch('/api/status');
         const data = await response.json();
-        
+
         if (data.status === 'ok')
         {
-            currentTargetTemp = data.targetTemp || 22;
-            currentEcoTemp = data.ecoTemp || 16;
-            currentMode = data.mode || 'eco';
+            // Skip updating mode/temp if user just interacted (within 2 seconds)
+            const timeSinceInteraction = Date.now() - lastUserInteraction;
+            const skipModeUpdate = timeSinceInteraction < 2000;
+
+            if (!skipModeUpdate)
+            {
+                currentTargetTemp = data.targetTemp || 22;
+                currentEcoTemp = data.ecoTemp || 16;
+                currentMode = data.mode || 'eco';
+            }
+
             MIN_TEMP = data.minTemp || 10;
             MAX_TEMP = data.maxTemp || 35;
-            
+
             if (data.currentTemp)
             {
                 currentTemp = data.currentTemp;
@@ -57,15 +66,18 @@ async function loadStatus()
                 currentTemp = null;
                 currentTempCenterDisplay.textContent = "--";
             }
-            
+
             if (data.humidity)
                 updateHumidity(data.humidity);
-                
-            updateDialForMode();
-            updateModeButtons();
+
+            if (!skipModeUpdate)
+            {
+                updateDialForMode();
+                updateModeButtons();
+            }
         }
     }
-    catch (error) 
+    catch (error)
     {
         console.error('Failed to load status:', error);
     }
@@ -225,6 +237,7 @@ function stopDrag()
     if (isDragging)
     {
         isDragging = false;
+        lastUserInteraction = Date.now();
         updateTemperature(currentTargetTemp);
     }
 }
@@ -256,6 +269,7 @@ async function updateMode(mode)
 function selectMode(mode)
 {
     currentMode = mode;
+    lastUserInteraction = Date.now();
     updateModeButtons();
     updateDialForMode();
     updateMode(mode);
