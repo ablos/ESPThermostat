@@ -1,0 +1,3 @@
+- Icon to indicate eco mode
+- show date
+- make sure the display runs on another thread, since it is very blocking

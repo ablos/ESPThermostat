@@ -18,6 +18,8 @@ bool Thermostat::begin()
         return false;
     }
 
+    updateSensor();
+
     Serial.println("Thermostat initialized!");
     return true;
 }
@@ -81,7 +83,13 @@ void Thermostat::controlHeater()
     if (status.currentTemp >= targetTemp)
     {
         digitalWrite(TRANS_PIN, LOW);
-        status.heaterActive = false;
+        
+        // Only set heater status to inactive when temperature is marginally larger than the set temperature
+        // so the status indicators only disappear when the temperature is higher due to the environment instead of heater
+        if (status.currentTemp > targetTemp + 1) 
+        {
+            status.heaterActive = false;
+        }
     }
 }
 

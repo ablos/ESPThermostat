@@ -9,7 +9,7 @@
 struct ThermostatStatus
 {
     float currentTemp = 19.0;
-    float currentHumidity = 40;
+    float currentHumidity = 50.0;
     bool heaterActive = false;
 };
 

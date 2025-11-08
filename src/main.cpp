@@ -5,11 +5,13 @@
 #include <data.h>
 #include <thermostat.h>
 #include <api.h>
+#include <display.h>
 
 DataManager* dataManager;
 Thermostat* thermostat;
 APIHandler* apiHandler;
 SimpleWebServer* webServer;
+DisplayManager* displayManager;
 
 void setup()
 {
@@ -43,9 +45,14 @@ void setup()
     }
 
     Serial.println("Webserver started successfully!");
+    
+    // Initialize eInk display
+    displayManager = new DisplayManager(dataManager, thermostat);
+    displayManager->begin();
 }
 
 void loop()
 {
     thermostat->update();
+    displayManager->update();
 }
