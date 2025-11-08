@@ -22,8 +22,13 @@ void setup()
 
     // Initialize thermostat
     thermostat = new Thermostat(dataManager);
-    thermostat->begin();
-    
+    if (!thermostat->begin()) 
+    {
+        Serial.println("Failed to initialize thermostat!");
+        while (1)
+            delay(1000);
+    }
+
     // Initialize API handler
     apiHandler = new APIHandler(dataManager, thermostat);
 
@@ -42,5 +47,5 @@ void setup()
 
 void loop()
 {
-    delay(100);
+    thermostat->update();
 }

@@ -249,3 +249,8 @@ float DataManager::getMinTemp()
 {
     return settings.minTemp;
 }
+
+float DataManager::getHysteresis() 
+{
+    return settings.hysteresis;
+}

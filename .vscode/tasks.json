@@ -1,0 +1,127 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "ESP32: Upload Code",
+            "type": "shell",
+            "command": "echo",
+            "args": ["Upload complete!"],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "close": true
+            },
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": ["Kill Monitors", "ESP32: Upload Code Internal", "ESP32: Monitor"]
+        },
+        {
+            "label": "ESP32: Upload Filesystem",
+            "type": "shell",
+            "command": "pio",
+            "args": ["run", "--target", "uploadfs"],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": [],
+            "dependsOn": ["Kill Monitors"]
+        },
+        {
+            "label": "ESP32: Upload All",
+            "type": "shell",
+            "command": "echo",
+            "args": ["Upload complete!"],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Kill Monitors",
+                "ESP32: Upload Filesystem Internal",
+                "ESP32: Upload Code Internal",
+                "ESP32: Monitor"
+            ]
+        },
+        {
+            "label": "ESP32: Upload Filesystem Internal",
+            "type": "shell",
+            "command": "pio",
+            "args": ["run", "--target", "uploadfs"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "close": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "ESP32: Upload Code Internal",
+            "type": "shell",
+            "command": "pio",
+            "args": ["run", "--target", "upload"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "close": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Kill Monitors",
+            "type": "shell",
+            "command": "pkill -f 'pio.*monitor' || true",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared",
+                "close": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "ESP32: Erase Flash",
+            "type": "shell",
+            "command": "pio",
+            "args": ["run", "--target", "erase"],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": [],
+            "dependsOn": ["Kill Monitors"]
+        },
+        {
+            "label": "ESP32: Monitor",
+            "type": "shell",
+            "command": "pio",
+            "args": ["device", "monitor"],
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "ESP32: Build",
+            "type": "shell",
+            "command": "pio",
+            "args": ["run"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

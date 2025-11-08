@@ -34,10 +34,11 @@ String APIHandler::handleStatus()
     }
     
     // Thermostat data
-    if (thermostat) 
+    if (thermostat)
     {
         doc["currentTemp"] = thermostat->getCurrentTemp();
         doc["humidity"] = thermostat->getCurrentHumidity();
+        doc["heaterActive"] = thermostat->getStatus().heaterActive;
     }
 
     String output;

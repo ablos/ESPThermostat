@@ -54,6 +54,7 @@ class DataManager
         float getEcoTemp();
         float getMaxTemp();
         float getMinTemp();
+        float getHysteresis();
 
         // Status
         bool isInitialized();

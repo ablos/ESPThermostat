@@ -90,6 +90,20 @@ body {
     font-size: 18px;
     margin-top: 15px;
     opacity: 0.9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.flame-icon-small {
+    display: none;
+    font-size: 20px;
+    animation: flicker 1.5s ease-in-out infinite;
+}
+
+.flame-icon-small.active {
+    display: inline-block;
 }
 
 .current-label {
@@ -157,6 +171,15 @@ body {
 
 .mode-button[data-mode="on"].active {
     background: rgba(76, 175, 80, 0.3) !important;
+}
+
+@keyframes flicker {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 .humidity-indicator {

@@ -15,6 +15,7 @@ const currentTempCenterDisplay = document.getElementById('currentTempCenter');
 const modeButtons = document.querySelectorAll('.mode-button');
 const humidityPointer = document.getElementById('humidityPointer');
 const humidityValue = document.getElementById('humidityValue');
+const flameIcon = document.getElementById('flameIcon');
 
 // Dial geometry
 const dialContainer = document.querySelector('.dial-container');
@@ -69,6 +70,12 @@ async function loadStatus()
 
             if (data.humidity)
                 updateHumidity(data.humidity);
+
+            // Update heater status indicator (only show in eco/on mode)
+            if (data.heaterActive && (currentMode === 'eco' || currentMode === 'on'))
+                flameIcon.classList.add('active');
+            else
+                flameIcon.classList.remove('active');
 
             if (!skipModeUpdate)
             {
@@ -229,6 +236,7 @@ function drag(e)
     // Round to nearest 0.5 degrees
     const roundedTemp = Math.round(temp * 2) / 2;
 
+    currentTargetTemp = roundedTemp;
     updateDial(roundedTemp);
 }
 
@@ -315,5 +323,5 @@ function updateHumidity(humidity)
     humidityPointer.style.left = `calc(${pointerPosition}% - 2px)`;
 }
 
-// Auto-refresh status and humidity every 5 seconds
-setInterval(loadStatus, 5000);
+// Auto-refresh status every 1 second for responsive heater status updates
+setInterval(loadStatus, 1000);
