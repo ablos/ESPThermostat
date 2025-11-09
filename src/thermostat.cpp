@@ -33,7 +33,7 @@ void Thermostat::update()
         updateSensor();
     }
     
-    // Check how much time has passed since last heater control and update every 0.5 secondsP
+    // Check how much time has passed since last heater control and update every 0.5 seconds
     if (millis() - lastControlTime >= 500) 
     {
         lastControlTime = millis();

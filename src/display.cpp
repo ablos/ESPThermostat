@@ -13,24 +13,53 @@ void DisplayManager::begin()
     display = new GxEPD2_3C<GxEPD2_290_C90c, GxEPD2_290_C90c::HEIGHT>(GxEPD2_290_C90c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
     display->init(115200);
     display->setRotation(1);
+    
+    // Initialize time
+    timezone.setLocation(TIMEZONE);
+    
+    if (timeStatus() == timeSet) 
+    {
+        Serial.println("Time synchronized");
+    }
+    else 
+    {
+        Serial.println("Time sync failed, will retry later.");
+    }
+    setInterval(3600);
+    setDebug(ezDebugLevel_t::NONE);
+
+    // Start update task on core 0
+    xTaskCreatePinnedToCore([](void* param)
+    {
+        DisplayManager* dm = static_cast<DisplayManager*>(param);
+        dm->updateTask();
+    }, "DisplayUpdateTask", 8192, this, 1, NULL, 0);
 
     Serial.println("Display initialized!");
 }
 
 void DisplayManager::update() 
 {
+    // Update time when connected to WiFi
+    if (WiFi.status() == WL_CONNECTED) 
+    {
+        events();
+    }
+
     // Read out current status
+    String mode = dataManager->getMode();
     float currentTemp = round(thermostat->getCurrentTemp() * 2) / 2;
-    float targetTemp = dataManager->getMode() == "eco" ? dataManager->getEcoTemp() : dataManager->getTargetTemp();
+    float targetTemp = mode == "eco" ? dataManager->getEcoTemp() : dataManager->getTargetTemp();
     float humidity = round(thermostat->getCurrentHumidity());
     bool heatingActive = thermostat->getStatus().heaterActive;
 
-    // Refresh if heatingActive or targetTemp changed
-    if (heatingActive != lastHeatingActive || targetTemp != lastTargetTemp) 
+    // Refresh if heatingActive or targetTemp changed or mode changed
+    if (heatingActive != lastHeatingActive || targetTemp != lastTargetTemp || mode != lastMode) 
     {
-        refreshDisplay(currentTemp, targetTemp, humidity);
+        refreshDisplay(currentTemp, targetTemp, humidity, mode, heatingActive);
 
         lastHeatingActive = heatingActive;
+        lastMode = mode;
         return;
     }
     
@@ -39,11 +68,22 @@ void DisplayManager::update()
         && (abs(currentTemp - lastCurrentTemp) >= TEMP_CHANGE_THRESHOLD
             || abs(humidity - lastHumidity) >= HUMIDITY_CHANGE_THRESHOLD)) 
     {
-        refreshDisplay(currentTemp, targetTemp, humidity);
+        refreshDisplay(currentTemp, targetTemp, humidity, mode, heatingActive);
+        return;
     }
 }
 
-void DisplayManager::refreshDisplay(float currentTemp, float targetTemp, float humidity)
+void DisplayManager::updateTask() 
+{
+    // Update every 100 ms
+    while (true) 
+    {
+        update();
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}
+
+void DisplayManager::refreshDisplay(float currentTemp, float targetTemp, float humidity, String mode, bool heatingActive)
 {
     display->setFullWindow();
     display->firstPage();
@@ -55,11 +95,12 @@ void DisplayManager::refreshDisplay(float currentTemp, float targetTemp, float h
 
         // Draw different parts
         drawLines();
-        drawCurrentTemperature(currentTemp);
+        drawCurrentTemperature(currentTemp, mode);
         drawHumidity(humidity);
-        drawTargetTemperature(targetTemp);
+        drawTargetTemperature(targetTemp, mode);
         drawDate();
-        drawFireIcon();
+        drawFireIcon(heatingActive);
+        drawLeafIcon(mode);
 
     } while (display->nextPage());
 
@@ -76,66 +117,157 @@ void DisplayManager::drawLines()
     display->fillRect((display->width() * 2 / 5) - 1, 96, 2, 96, GxEPD_BLACK);
 }
 
-void DisplayManager::drawTargetTemperature(float temperature) 
+void DisplayManager::drawTargetTemperature(float temperature, String mode)
 {
-    if (dataManager->getMode() == "off")
+    if (mode != "on")
         return;
 
+    // Format temperature string
     char buffer[10];
-    uint16_t x, y, w, h;
-    getTargetTempRegion(temperature, buffer, &x, &y, &w, &h);
+    if (temperature == (int)temperature)
+    {
+        sprintf(buffer, "%.0f", temperature);
+    }
+    else
+    {
+        sprintf(buffer, "%.1f", temperature);
+    }
+
+    // Set text parameters
+    display->setTextColor(GxEPD_BLACK);
+    setFontSemiBold();
+
+    // Get width and height of string
+    uint16_t w, h;
+    getStringBounds(buffer, &w, &h);
+
+    // Calculate position
+    int x = (display->width() / 2) + (targetTempIconSize + iconSpacing - w) / 2;
+    int y = 70 + h;
 
     // Print icon and text
     display->setCursor(x, y);
     display->print(buffer);
-    display->drawBitmap(x - (targetTempIconSize + spacing), 71, target_icon, targetTempIconSize, targetTempIconSize, GxEPD_BLACK);
+    display->drawBitmap(x - (targetTempIconSize + iconSpacing), 71, target_icon, targetTempIconSize, targetTempIconSize, GxEPD_BLACK);
+
+    // Calculate position of degree circle
+    int xc = x + w + (degreeRadiusSmall / 2) + 7;
+    int yc = y - h + degreeRadiusSmall;
+
+    display->fillCircle(xc, yc, degreeRadiusSmall, GxEPD_BLACK);
+    display->fillCircle(xc, yc, degreeRadiusSmall / 2, GxEPD_WHITE);
 }
 
-void DisplayManager::drawCurrentTemperature(float temperature) 
+void DisplayManager::drawCurrentTemperature(float temperature, String mode)
 {
-    // Make current temp string with single decimal point
+    // Format temperature string
     char buffer[10];
-    uint16_t x, y, w, h;
-    getCurrentTempRegion(temperature, buffer, &x, &y, &w, &h);
+    if (temperature == (int)temperature)
+    {
+        sprintf(buffer, "%.0f", temperature);
+    }
+    else
+    {
+        sprintf(buffer, "%.1f", temperature);
+    }
+
+    // Set text parameters
+    display->setTextColor(GxEPD_BLACK);
+    setFontExtraBold();
+
+    // Get width and height of string
+    uint16_t w, h;
+    getStringBounds(buffer, &w, &h);
+
+    // Calculate position
+    int x = (display->width() / 2) - (w / 2);
+    int y = mode == "on" ? 35 + (h / 2) : (95 / 2) + (h / 2);
 
     // Print text
     display->setCursor(x, y);
     display->print(buffer);
-    
+
     // Calculate position of degree circle
-    int xc = x + w + (degreeRadius / 2) + 10;
-    int yc = y - h + degreeRadius - 3;
-    
+    int xc = x + w + (degreeRadiusBig / 2) + 10;
+    int yc = y - h + degreeRadiusBig - 3;
+
     // Draw degrees circle
-    display->fillCircle(xc, yc, degreeRadius, GxEPD_BLACK);
-    display->fillCircle(xc, yc, degreeRadius / 2, GxEPD_WHITE);
+    display->fillCircle(xc, yc, degreeRadiusBig, GxEPD_BLACK);
+    display->fillCircle(xc, yc, degreeRadiusBig / 2, GxEPD_WHITE);
 }
 
-void DisplayManager::drawHumidity(float humidity) 
+void DisplayManager::drawHumidity(float humidity)
 {
-    // Make humidity string without decimals
+    // Format humidity string
     char buffer[10];
+    sprintf(buffer, "%.0f%%", humidity);
 
-    uint16_t x, y, w, h;
-    getHumidityRegion(humidity, buffer, &x, &y, &w, &h);
+    // Set text parameters
+    display->setTextColor(GxEPD_BLACK);
+    setFontSemiBold();
+
+    // Get width and height of string
+    uint16_t w, h;
+    getStringBounds(buffer, &w, &h);
+
+    // Calculate position
+    int x = (display->width() / 5) + (humidityIconSize + iconSpacing - w) / 2;
+    int y = (display->height() + h) / 2 + 50;
 
     // Print text and icon
     display->setCursor(x, y);
     display->print(buffer);
-    display->drawBitmap(x - (humidityIconSize + spacing), 101, humidity_icon, humidityIconSize, humidityIconSize, GxEPD_BLACK);
+    display->drawBitmap(x - (humidityIconSize + iconSpacing), 101, humidity_icon, humidityIconSize, humidityIconSize, GxEPD_BLACK);
 }
 
-void DisplayManager::drawFireIcon() 
+void DisplayManager::drawFireIcon(bool heatingActive) 
 {
-    if (!thermostat->getStatus().heaterActive)
-        return;
+    if (heatingActive) 
+    {
+        display->drawBitmap(225, 17, fire_icon, 61, 61, GxEPD_RED);
+    }
+}
 
-    display->drawBitmap(225, 17, fire_icon, 61, 61, GxEPD_RED);
+void DisplayManager::drawLeafIcon(String mode) 
+{
+    if (mode == "eco") 
+    {
+        display->drawBitmap(10, 17, leaf_icon, 61, 61, GxEPD_BLACK);
+    }
 }
 
 void DisplayManager::drawDate() 
 {
-    // TODO: IMPLEMENT DATE
+    String dateString = "";
+
+    if (timeStatus() == timeSet) 
+    {
+        dateString += LANGUAGE->days[timezone.weekday()];
+        dateString += ", ";
+        dateString += timezone.day();
+        dateString += " ";
+        dateString += LANGUAGE->months[timezone.month() - 1];
+    }
+    else 
+    {
+        dateString = "?";
+    }
+
+    char *date = new char[dateString.length() + 1];
+    dateString.toCharArray(date, dateString.length() + 1);
+
+    setFontSemiBold();
+
+    uint16_t w, h;
+    getStringBounds(date, &w, &h);
+
+    int x = (display->width() * 7) / 10 - w / 2;
+    int y = (display->height() + 95) / 2 + h / 2 - 2;
+
+    display->setCursor(x, y);
+    display->print(date);
+
+    delete[] date;
 }
 
 // Usage (don't forget to set font first!):
@@ -145,55 +277,6 @@ void DisplayManager::getStringBounds(const char *str, uint16_t *w, uint16_t *h)
 {
     int16_t x1, y1;
     display->getTextBounds(str, 0, 0, &x1, &y1, w, h);
-}
-
-void DisplayManager::getCurrentTempRegion(float temperature, char *buffer, uint16_t *x, uint16_t *y, uint16_t *w, uint16_t *h) 
-{
-    sprintf(buffer, "%.1f", temperature);
-    
-    // Set text parameters
-    display->setTextColor(GxEPD_BLACK);
-    setFontExtraBold();
-    
-    // Get width and height of string
-    getStringBounds(buffer, w, h);
-    
-    // Calculate position
-    *x = (display->width() / 2) - (*w / 2);
-    *y = dataManager->getMode() == "off" ? (95 / 2) + (*h / 2) : 35 + (*h / 2);
-}
-
-void DisplayManager::getTargetTempRegion(float temperature, char *buffer, uint16_t *x, uint16_t *y, uint16_t *w, uint16_t *h) 
-{
-    // Make target temp string with single decimal point
-    sprintf(buffer, "%.1f", temperature);
-
-    // Set text parameters
-    display->setTextColor(GxEPD_BLACK);
-    setFontSemiBold();
-    
-    // Get width and height of string
-    getStringBounds(buffer, w, h);
-
-    // Calculate position
-    *x = (display->width() / 2) + (targetTempIconSize + spacing - *w) / 2;
-    *y = 70 + *h;
-}
-
-void DisplayManager::getHumidityRegion(float humidity, char *buffer, uint16_t *x, uint16_t *y, uint16_t *w, uint16_t *h) 
-{
-    sprintf(buffer, "%.0f%%", humidity);
-    
-    // Set text parameters
-    display->setTextColor(GxEPD_BLACK);
-    setFontSemiBold();
-    
-    // Get width and height of string
-    getStringBounds(buffer, w, h);
-
-    // Calculate position
-    *x = (display->width() / 5) + (humidityIconSize + spacing - *w) / 2;
-    *y = (display->height() + *h) / 2 + 50;
 }
 
 void DisplayManager::setFontExtraBold() 

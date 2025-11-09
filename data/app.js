@@ -122,6 +122,7 @@ function updateDialForMode()
         dialHandle.style.display = 'none';
         dialProgress.style.display = 'none';
         currentTempCenterDisplay.style.display = 'none';
+        flameIcon.style.display = 'none';
 
         if (currentTemp !== null)
         {
@@ -142,6 +143,7 @@ function updateDialForMode()
         dialHandle.style.display = 'none';
         dialProgress.style.display = 'none';
         currentTempCenterDisplay.style.display = 'block';
+        flameIcon.style.display = 'block';
         updateDial(currentEcoTemp);
     }
     else
@@ -150,6 +152,7 @@ function updateDialForMode()
         dialHandle.style.display = 'block';
         dialProgress.style.display = 'block';
         currentTempCenterDisplay.style.display = 'block';
+        flameIcon.style.display = 'block'
         updateDial(currentTargetTemp);
     }
 }
