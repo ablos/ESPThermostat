@@ -15,8 +15,9 @@ void DisplayManager::begin()
     display->setRotation(1);
     
     // Initialize time
+    waitForSync(5);
     timezone.setLocation(TIMEZONE);
-    
+
     if (timeStatus() == timeSet) 
     {
         Serial.println("Time synchronized");

@@ -6,12 +6,14 @@
 #include <thermostat.h>
 #include <api.h>
 #include <display.h>
+#include <buttons.h>
 
 DataManager* dataManager;
 Thermostat* thermostat;
 APIHandler* apiHandler;
 SimpleWebServer* webServer;
 DisplayManager* displayManager;
+ButtonManager* buttonManager;
 
 void setup()
 {
@@ -46,6 +48,10 @@ void setup()
 
     Serial.println("Webserver started successfully!");
     
+    // Initialize buttons
+    buttonManager = new ButtonManager(dataManager);
+    buttonManager->begin();
+
     // Initialize eInk display
     displayManager = new DisplayManager(dataManager, thermostat);
     displayManager->begin();
@@ -54,4 +60,5 @@ void setup()
 void loop()
 {
     thermostat->update();
+    buttonManager->update();
 }

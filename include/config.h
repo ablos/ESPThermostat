@@ -18,6 +18,15 @@
 #define EPD_MOSI 23                     // Sometimes labeled SDA
 #define EPD_SCK 18                      // Sometimes labeled SCL
 
+// BUTTON PINS
+#define BTN_MODE 27
+#define BTN_T_UP 13
+#define BTN_T_DOWN 14
+
+// -----------------------------------------------------
+// EVERYTHING BELOW HERE SHOULD BE MOVED TO WEB SETTINGS
+// -----------------------------------------------------
+
 #define EPD_REFRESH_RATE 300            // Minimum interval for refreshing the display in seconds
 #define TEMP_CHANGE_THRESHOLD 0.5
 #define HUMIDITY_CHANGE_THRESHOLD 3
