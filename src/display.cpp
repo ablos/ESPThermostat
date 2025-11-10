@@ -70,6 +70,7 @@ void DisplayManager::update()
             || abs(humidity - lastHumidity) >= HUMIDITY_CHANGE_THRESHOLD)) 
     {
         refreshDisplay(currentTemp, targetTemp, humidity, mode, heatingActive);
+        lastRefresh = millis();
         return;
     }
 }
