@@ -77,11 +77,11 @@ void DisplayManager::update()
 
 void DisplayManager::updateTask() 
 {
-    // Update every 100 ms
+    // Update every 2 seconds
     while (true) 
     {
         update();
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
 }
 
