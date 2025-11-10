@@ -41,7 +41,7 @@ class DataManager
 
         // Internal helpers
         void setDefaults();
-        bool validateSettings();
+        void saveAllSettings();
     
     public:
         DataManager();
@@ -61,6 +61,7 @@ class DataManager
         bool setEcoTemp(float temp);
         bool setMaxTemp(float temp);
         bool setMinTemp(float temp);
+        bool setTempOffset(float offset);
         bool setEpdRefreshRate(uint32_t refreshRate);
         bool setTempChangeThreshold(float threshold);
         bool setHumidityChangeThreshold(float threshold);
@@ -73,6 +74,7 @@ class DataManager
         float getEcoTemp();
         float getMaxTemp();
         float getMinTemp();
+        float getTempOffset();
         float getHysteresis();
         uint32_t getEpdRefreshRate();
         float getTempChangeThreshold();

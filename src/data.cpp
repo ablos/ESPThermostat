@@ -8,67 +8,45 @@ DataManager::~DataManager()
         preferences.end();
 }
 
-bool DataManager::begin() 
+bool DataManager::begin()
 {
     Serial.println("Initializing Data Manager...");
-    
-    if (!preferences.begin("thermostat", false)) 
+
+    if (!preferences.begin("thermostat", false))
     {
         Serial.println("Failed to initialize preferences");
         return false;
     }
-    
+
     // Load existing settings or set defaults
-    if (preferences.isKey("initialized")) 
+    if (preferences.isKey("initialized"))
     {
-        // Load from flash
-        settings.targetTemp = preferences.getFloat("targetTemp", 20.5);
-        settings.mode = preferences.getString("mode", "off");
-        settings.tempOffset = preferences.getFloat("tempOffset", 0.0);
-        settings.hysteresis = preferences.getFloat("hysteresis", 0.5);
-        settings.minTemp = preferences.getFloat("minTemp", 10.0);
-        settings.maxTemp = preferences.getFloat("maxTemp", 35.0);
-
-        settings.ecoTemp = preferences.getFloat("ecoTemp", 16.0);
-
-        settings.epdRefreshRate = preferences.getUInt("epdRefreshRate", 300);
-        settings.tempChangeThreshold = preferences.getFloat("tempChangeThreshold", 0.5);
-        settings.humidityChangeThreshold = preferences.getFloat("humidityChangeThreshold", 3);
-
-        settings.timezone = preferences.getString("timezone", "Europe/Amsterdam");
-        settings.languageCode = preferences.getString("languageCode", "nl");
+        // Load from flash, using struct defaults as fallbacks
+        settings.targetTemp = preferences.getFloat("targetTemp", settings.targetTemp);
+        settings.mode = preferences.getString("mode", settings.mode);
+        settings.tempOffset = preferences.getFloat("tempOffset", settings.tempOffset);
+        settings.hysteresis = preferences.getFloat("hysteresis", settings.hysteresis);
+        settings.minTemp = preferences.getFloat("minTemp", settings.minTemp);
+        settings.maxTemp = preferences.getFloat("maxTemp", settings.maxTemp);
+        settings.ecoTemp = preferences.getFloat("ecoTemp", settings.ecoTemp);
+        settings.epdRefreshRate = preferences.getUInt("epdRefreshRate", settings.epdRefreshRate);
+        settings.tempChangeThreshold = preferences.getFloat("tempChangeThreshold", settings.tempChangeThreshold);
+        settings.humidityChangeThreshold = preferences.getFloat("humidityChangeThreshold", settings.humidityChangeThreshold);
+        settings.timezone = preferences.getString("timezone", settings.timezone);
+        settings.languageCode = preferences.getString("languageCode", settings.languageCode);
 
         Serial.println("Settings loaded from flash");
     }
-    else 
+    else
     {
-        setDefaults();
+        // First time: save defaults to flash
+        saveAllSettings();
         preferences.putBool("initialized", true);
         Serial.println("Default settings applied");
-    }
-    
-    // Validate loaded settings
-    if (!validateSettings()) 
-    {
-        Serial.println("Invalid settings detected, applying defaults...");
-        setDefaults();
     }
 
     initialized = true;
     printSettings();
-    return true;
-}
-
-bool DataManager::validateSettings() 
-{
-    // Check settings
-    if (settings.minTemp >= settings.maxTemp) return false;
-    if (settings.targetTemp < settings.minTemp || settings.targetTemp > settings.maxTemp) return false;
-    if (settings.ecoTemp < settings.minTemp || settings.ecoTemp > settings.maxTemp) return false;
-    if (settings.hysteresis < 0.1 || settings.hysteresis > 5.0) return false;
-    if (settings.timezone.length() < 1) return false;
-    if (settings.languageCode.length() != 2) return false;
-
     return true;
 }
 
@@ -85,59 +63,51 @@ void DataManager::printSettings()
 // SETTERS
 // ==================
 
-void DataManager::setDefaults() 
+void DataManager::setDefaults()
 {
-    settings.targetTemp = 20.5;
-    settings.mode = "off";
-    settings.tempOffset = 0.0;
-    settings.hysteresis = 0.5;
-    settings.minTemp = 10.0;
-    settings.maxTemp = 35.0;
-    
-    settings.ecoTemp = 16.0;
-
-    settings.epdRefreshRate = 300;
-    settings.tempChangeThreshold = 0.5;
-    settings.humidityChangeThreshold = 3;
-    settings.timezone = "Europe/Amsterdam";
-    settings.languageCode = "nl";
-
-    // Save defaults
-    updateSettings(settings);
+    settings = ThermostatSettings();  // Reset to struct defaults
+    saveAllSettings();
 }
 
-bool DataManager::updateSettings(const ThermostatSettings& newSettings) 
+void DataManager::saveAllSettings()
 {
     if (!initialized)
-        return false;
-        
-    // Validate new settings
-    ThermostatSettings temp = newSettings;
-    if (temp.targetTemp < temp.minTemp) temp.targetTemp = temp.minTemp;
-    if (temp.targetTemp > temp.maxTemp) temp.targetTemp = temp.maxTemp;
-    if (temp.ecoTemp < temp.minTemp) temp.ecoTemp = temp.minTemp;
-    if (temp.ecoTemp > temp.maxTemp) temp.ecoTemp = temp.maxTemp;
+        return;
 
-    settings = temp;
-    
-    // Save to flash
     preferences.putFloat("targetTemp", settings.targetTemp);
     preferences.putString("mode", settings.mode);
     preferences.putFloat("tempOffset", settings.tempOffset);
     preferences.putFloat("hysteresis", settings.hysteresis);
     preferences.putFloat("minTemp", settings.minTemp);
     preferences.putFloat("maxTemp", settings.maxTemp);
-
     preferences.putFloat("ecoTemp", settings.ecoTemp);
-
     preferences.putUInt("epdRefreshRate", settings.epdRefreshRate);
     preferences.putFloat("tempChangeThreshold", settings.tempChangeThreshold);
     preferences.putFloat("humidityChangeThreshold", settings.humidityChangeThreshold);
-
     preferences.putString("timezone", settings.timezone);
     preferences.putString("languageCode", settings.languageCode);
 
     Serial.println("Settings saved to flash");
+}
+
+bool DataManager::updateSettings(const ThermostatSettings& newSettings)
+{
+    if (!initialized)
+        return false;
+
+    // Update each setting through individual setters for validation
+    setMinTemp(newSettings.minTemp);
+    setMaxTemp(newSettings.maxTemp);
+    setTargetTemp(newSettings.targetTemp);
+    setEcoTemp(newSettings.ecoTemp);
+    setMode(newSettings.mode);
+    setTempOffset(newSettings.tempOffset);
+    setTempChangeThreshold(newSettings.tempChangeThreshold);
+    setHumidityChangeThreshold(newSettings.humidityChangeThreshold);
+    setEpdRefreshRate(newSettings.epdRefreshRate);
+    setTimezone(newSettings.timezone);
+    setLanguageCode(newSettings.languageCode);
+
     return true;
 }
 
@@ -205,12 +175,12 @@ bool DataManager::setMinTemp(float temp)
     return true;
 }
 
-bool DataManager::setMode(String mode) 
+bool DataManager::setMode(String mode)
 {
     if (!initialized)
         return false;
-        
-    if (mode != "off" && mode != "eco" && mode != "on") 
+
+    if (mode != "off" && mode != "eco" && mode != "on")
     {
         Serial.println("INVALID MODE!");
         ESP.restart();
@@ -218,8 +188,20 @@ bool DataManager::setMode(String mode)
 
     settings.mode = mode;
     preferences.putString("mode", settings.mode);
-    
+
     Serial.printf("Thermostat %s\n", mode);
+    return true;
+}
+
+bool DataManager::setTempOffset(float offset)
+{
+    if (!initialized)
+        return false;
+
+    settings.tempOffset = offset;
+    preferences.putFloat("tempOffset", settings.tempOffset);
+
+    Serial.printf("Temperature offset set to %.1f°C\n", offset);
     return true;
 }
 
@@ -333,9 +315,14 @@ float DataManager::getMaxTemp()
     return settings.maxTemp;
 }
 
-float DataManager::getMinTemp() 
+float DataManager::getMinTemp()
 {
     return settings.minTemp;
+}
+
+float DataManager::getTempOffset()
+{
+    return settings.tempOffset;
 }
 
 float DataManager::getHysteresis() 
