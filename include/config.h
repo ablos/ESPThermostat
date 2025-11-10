@@ -1,8 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <languages.h>
-
 // AHT Sensor I2C pins
 #define AHT_SDA 21
 #define AHT_SCL 22
@@ -22,17 +20,5 @@
 #define BTN_MODE 27
 #define BTN_T_UP 13
 #define BTN_T_DOWN 14
-
-// -----------------------------------------------------
-// EVERYTHING BELOW HERE SHOULD BE MOVED TO WEB SETTINGS
-// -----------------------------------------------------
-
-#define EPD_REFRESH_RATE 300            // Minimum interval for refreshing the display in seconds
-#define TEMP_CHANGE_THRESHOLD 0.5
-#define HUMIDITY_CHANGE_THRESHOLD 3
-
-// Time config
-#define TIMEZONE "Europe/Amsterdam"
-#define LANGUAGE (&NL)
 
 #endif

@@ -31,6 +31,13 @@ bool DataManager::begin()
 
         settings.ecoTemp = preferences.getFloat("ecoTemp", 16.0);
 
+        settings.epdRefreshRate = preferences.getUInt("epdRefreshRate", 300);
+        settings.tempChangeThreshold = preferences.getFloat("tempChangeThreshold", 0.5);
+        settings.humidityChangeThreshold = preferences.getFloat("humidityChangeThreshold", 3);
+
+        settings.timezone = preferences.getString("timezone", "Europe/Amsterdam");
+        settings.languageCode = preferences.getString("languageCode", "nl");
+
         Serial.println("Settings loaded from flash");
     }
     else 
@@ -59,6 +66,8 @@ bool DataManager::validateSettings()
     if (settings.targetTemp < settings.minTemp || settings.targetTemp > settings.maxTemp) return false;
     if (settings.ecoTemp < settings.minTemp || settings.ecoTemp > settings.maxTemp) return false;
     if (settings.hysteresis < 0.1 || settings.hysteresis > 5.0) return false;
+    if (settings.timezone.length() < 1) return false;
+    if (settings.languageCode.length() != 2) return false;
 
     return true;
 }
@@ -86,7 +95,13 @@ void DataManager::setDefaults()
     settings.maxTemp = 35.0;
     
     settings.ecoTemp = 16.0;
-    
+
+    settings.epdRefreshRate = 300;
+    settings.tempChangeThreshold = 0.5;
+    settings.humidityChangeThreshold = 3;
+    settings.timezone = "Europe/Amsterdam";
+    settings.languageCode = "nl";
+
     // Save defaults
     updateSettings(settings);
 }
@@ -114,6 +129,13 @@ bool DataManager::updateSettings(const ThermostatSettings& newSettings)
     preferences.putFloat("maxTemp", settings.maxTemp);
 
     preferences.putFloat("ecoTemp", settings.ecoTemp);
+
+    preferences.putUInt("epdRefreshRate", settings.epdRefreshRate);
+    preferences.putFloat("tempChangeThreshold", settings.tempChangeThreshold);
+    preferences.putFloat("humidityChangeThreshold", settings.humidityChangeThreshold);
+
+    preferences.putString("timezone", settings.timezone);
+    preferences.putString("languageCode", settings.languageCode);
 
     Serial.println("Settings saved to flash");
     return true;
@@ -201,6 +223,72 @@ bool DataManager::setMode(String mode)
     return true;
 }
 
+bool DataManager::setEpdRefreshRate(uint32_t refreshRate) 
+{
+    if (!initialized)
+        return false;
+
+    settings.epdRefreshRate = refreshRate;
+    preferences.putUInt("epdRefreshRate", refreshRate);
+
+    Serial.printf("EPD Refresh rate set to %lu\n", refreshRate);
+    return true;
+}
+
+bool DataManager::setTempChangeThreshold(float threshold) 
+{
+    if (!initialized)
+        return false;
+
+    settings.tempChangeThreshold = threshold;
+    preferences.putFloat("tempChangeThreshold", threshold);
+
+    Serial.printf("Temperature change threshold is set to %.1f\n", threshold);
+    return true;
+}
+
+bool DataManager::setHumidityChangeThreshold(float threshold) 
+{
+    if (!initialized)
+        return false;
+
+    settings.humidityChangeThreshold = threshold;
+    preferences.putFloat("humidityChangeThreshold", threshold);
+
+    Serial.printf("Humidity change threshold is set to %.1f\n", threshold);
+    return true;
+}
+
+bool DataManager::setTimezone(String timezone) 
+{
+    if (!initialized)
+        return false;
+        
+    if (timezone.length() < 1)
+        return false;
+
+    settings.timezone = timezone;
+    preferences.putString("timezone", timezone);
+
+    Serial.printf("Timezone set to %s\n", timezone);
+    return true;
+}
+
+bool DataManager::setLanguageCode(String languageCode) 
+{
+    if (!initialized)
+        return false;
+        
+    if (languageCode.length() != 2)
+        return false;
+
+    settings.languageCode = languageCode;
+    preferences.putString("languageCode", languageCode);
+
+    Serial.printf("Language code set to %s\n", languageCode);
+    return true;
+}
+
 void DataManager::reset() 
 {
     if (initialized) 
@@ -253,4 +341,39 @@ float DataManager::getMinTemp()
 float DataManager::getHysteresis() 
 {
     return settings.hysteresis;
+}
+
+uint32_t DataManager::getEpdRefreshRate() 
+{
+    return settings.epdRefreshRate;
+}
+
+float DataManager::getTempChangeThreshold() 
+{
+    return settings.tempChangeThreshold;
+}
+
+float DataManager::getHumidityChangeThreshold() 
+{
+    return settings.humidityChangeThreshold;
+}
+
+String DataManager::getTimezone() 
+{
+    return settings.timezone;
+}
+
+const std::map<String, const LanguagePack*> DataManager::LANGUAGE_PACKS = 
+{
+    {"nl", &NL},
+    {"en", &EN}
+};
+
+const LanguagePack* DataManager::getLanguagePack()
+{
+    auto it = LANGUAGE_PACKS.find(settings.languageCode);
+    if (it != LANGUAGE_PACKS.end()) {
+        return it->second;
+    }
+    return &NL;  // default to Dutch
 }

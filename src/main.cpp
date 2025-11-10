@@ -61,4 +61,8 @@ void loop()
 {
     thermostat->update();
     buttonManager->update();
+
+    // Small delay to limit processing power
+    // And therefore leaking heat that could affect readings
+    delay(10);
 }

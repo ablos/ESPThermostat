@@ -16,7 +16,7 @@ void DisplayManager::begin()
     
     // Initialize time
     waitForSync(5);
-    timezone.setLocation(TIMEZONE);
+    timezone.setLocation(dataManager->getTimezone());
 
     if (timeStatus() == timeSet) 
     {
@@ -65,9 +65,9 @@ void DisplayManager::update()
     }
     
     // Refresh after minimum interval length and if current temp or humidity changed enough
-    if (millis() - lastRefresh >= (EPD_REFRESH_RATE * 1000)
-        && (abs(currentTemp - lastCurrentTemp) >= TEMP_CHANGE_THRESHOLD
-            || abs(humidity - lastHumidity) >= HUMIDITY_CHANGE_THRESHOLD)) 
+    if (millis() - lastRefresh >= (dataManager->getEpdRefreshRate() * 1000)
+        && (abs(currentTemp - lastCurrentTemp) >= dataManager->getTempChangeThreshold()
+            || abs(humidity - lastHumidity) >= dataManager->getHumidityChangeThreshold())) 
     {
         refreshDisplay(currentTemp, targetTemp, humidity, mode, heatingActive);
         lastRefresh = millis();
@@ -244,11 +244,11 @@ void DisplayManager::drawDate()
 
     if (timeStatus() == timeSet) 
     {
-        dateString += LANGUAGE->days[timezone.weekday()];
+        dateString += dataManager->getLanguagePack()->days[timezone.weekday()];
         dateString += ", ";
         dateString += timezone.day();
         dateString += " ";
-        dateString += LANGUAGE->months[timezone.month() - 1];
+        dateString += dataManager->getLanguagePack()->months[timezone.month() - 1];
     }
     else 
     {

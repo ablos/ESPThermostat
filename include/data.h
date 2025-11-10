@@ -3,6 +3,8 @@
 
 #include <Preferences.h>
 #include <Arduino.h>
+#include <languages.h>
+#include <map>
 
 struct ThermostatSettings 
 {
@@ -16,15 +18,27 @@ struct ThermostatSettings
 
     // Eco mode settings
     float ecoTemp = 16.0;
+
+    // Display settings
+    uint32_t epdRefreshRate = 300;
+    float tempChangeThreshold = 0.5;
+    float humidityChangeThreshold = 3;
+    
+    // Time and language
+    String timezone = "Europe/Amsterdam";
+    String languageCode = "nl";
 };
 
-class DataManager 
+class DataManager
 {
     private:
         Preferences preferences;
         ThermostatSettings settings;
         bool initialized = false;
-        
+
+        // Language packs map
+        static const std::map<String, const LanguagePack*> LANGUAGE_PACKS;
+
         // Internal helpers
         void setDefaults();
         bool validateSettings();
@@ -47,6 +61,11 @@ class DataManager
         bool setEcoTemp(float temp);
         bool setMaxTemp(float temp);
         bool setMinTemp(float temp);
+        bool setEpdRefreshRate(uint32_t refreshRate);
+        bool setTempChangeThreshold(float threshold);
+        bool setHumidityChangeThreshold(float threshold);
+        bool setTimezone(String timezone);
+        bool setLanguageCode(String languageCode);
 
         // Quick access methods
         float getTargetTemp();
@@ -55,6 +74,11 @@ class DataManager
         float getMaxTemp();
         float getMinTemp();
         float getHysteresis();
+        uint32_t getEpdRefreshRate();
+        float getTempChangeThreshold();
+        float getHumidityChangeThreshold();
+        String getTimezone();
+        const LanguagePack* getLanguagePack();
 
         // Status
         bool isInitialized();
