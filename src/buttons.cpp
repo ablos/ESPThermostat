@@ -24,6 +24,10 @@ void ButtonManager::begin()
     tDownBtn.attachClick(tempDownClickEvent);
     tDownBtn.attachDoubleClick(tempDownClickEvent);
     tDownBtn.attachMultiClick(tempDownClickEvent);
+    
+    // Set up PROG button
+    progBtn.setup(BTN_PROG, INPUT, true);
+    progBtn.attachClick(progSingleClickEvent);
 }
 
 void ButtonManager::update() 
@@ -31,6 +35,7 @@ void ButtonManager::update()
     modeBtn.tick();
     tUpBtn.tick();
     tDownBtn.tick();
+    progBtn.tick();
 }
 
 void ButtonManager::modeSingleClickEvent() 
@@ -40,6 +45,8 @@ void ButtonManager::modeSingleClickEvent()
 
 void ButtonManager::handleModeSingleClick() 
 {
+    Serial.println("Mode button clicked");
+
     String mode = dataManager->getMode();
     
     if (mode == "eco") 
@@ -60,6 +67,8 @@ void ButtonManager::modeLongClickEvent()
 
 void ButtonManager::handleModeLongClick() 
 {
+    Serial.println("Mode button long press");
+
     String mode = dataManager->getMode();
     
     if (mode != "off") 
@@ -79,6 +88,9 @@ void ButtonManager::tempUpClickEvent()
 
 void ButtonManager::handleTempUpClick() 
 {
+    Serial.printf("Temp up button pressed %d times", tUpBtn.getNumberClicks());
+    Serial.println();
+
     if (dataManager->getMode() == "on") 
     {
         dataManager->setTargetTemp(dataManager->getTargetTemp() + (tUpBtn.getNumberClicks() * 0.5));
@@ -92,8 +104,21 @@ void ButtonManager::tempDownClickEvent()
 
 void ButtonManager::handleTempDownClick() 
 {
-    if (dataManager->getMode() = "on") 
+    Serial.printf("Temp down button pressed %d times", tDownBtn.getNumberClicks());
+    Serial.println();
+
+    if (dataManager->getMode() == "on") 
     {
         dataManager->setTargetTemp(dataManager->getTargetTemp() - (tDownBtn.getNumberClicks() * 0.5));
     }
+}
+
+void ButtonManager::progSingleClickEvent() 
+{
+    if (instance) instance->handleProgSingleClick();
+}
+
+void ButtonManager::handleProgSingleClick() 
+{
+    Serial.println("Prog button clicked");
 }

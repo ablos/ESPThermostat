@@ -15,6 +15,7 @@ class ButtonManager
         OneButton modeBtn;
         OneButton tUpBtn;
         OneButton tDownBtn;
+        OneButton progBtn;
 
         static void modeSingleClickEvent();
         void handleModeSingleClick();
@@ -26,6 +27,9 @@ class ButtonManager
 
         static void tempDownClickEvent();
         void handleTempDownClick();
+
+        static void progSingleClickEvent();
+        void handleProgSingleClick();
 
     public:
         ButtonManager(DataManager *dm);

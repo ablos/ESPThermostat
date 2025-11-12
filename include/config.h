@@ -17,8 +17,9 @@
 #define EPD_SCK 18                      // Sometimes labeled SCL
 
 // BUTTON PINS
-#define BTN_MODE 27
-#define BTN_T_UP 13
+#define BTN_MODE 13
+#define BTN_T_UP 27
 #define BTN_T_DOWN 14
+#define BTN_PROG 26
 
 #endif
