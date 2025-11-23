@@ -11,7 +11,7 @@ struct ThermostatSettings
     // General settings
     float targetTemp = 20.5;
     String mode = "off";
-    float tempOffset = 0.0;
+    float tempOffset = -1.0;
     float hysteresis = 0.3;
     float minTemp = 10.0;
     float maxTemp = 35.0;

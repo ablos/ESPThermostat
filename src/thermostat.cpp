@@ -114,7 +114,7 @@ ThermostatStatus Thermostat::getStatus()
 
 float Thermostat::getCurrentTemp() 
 {
-    return status.currentTemp;
+    return status.currentTemp + dataManager.getTempOffset();
 }
 
 float Thermostat::getCurrentHumidity() 
