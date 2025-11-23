@@ -1,15 +1,13 @@
 #include <Arduino.h>
-#include <web.h>
-#include <secrets.h>
-#include <esp_task_wdt.h>
+#include <config.h>
 #include <data.h>
 #include <thermostat.h>
-#include <api.h>
-#include <display.h>
 #include <buttons.h>
 #include <network.h>
 #include <time_manager.h>
 #include <mqtt.h>
+#include <display.h>
+#include <web.h>
 
 void setup()
 {
@@ -36,13 +34,15 @@ void setup()
     TimeManager::getInstance().begin();
 
     // Initialize MQTT manager
-    MQTTManager::getInstance().begin();
+    if (USE_MQTT)
+        MQTTManager::getInstance().begin();
 
     // Initialize eInk display
     DisplayManager::getInstance().begin();
 
     // Initialize Web Server
-    SimpleWebServer::getInstance().begin();
+    if (USE_WEB)
+        SimpleWebServer::getInstance().begin();
 
     Serial.println("Setup complete!");
 }
