@@ -22,21 +22,6 @@ bool DisplayManager::begin()
     display = new GxEPD2_3C<GxEPD2_290_C90c, GxEPD2_290_C90c::HEIGHT>(GxEPD2_290_C90c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
     display->init(115200);
     display->setRotation(1);
-    
-    // Initialize time
-    waitForSync(5);
-    timezone.setLocation(dataManager.getTimezone());
-
-    if (timeStatus() == timeSet) 
-    {
-        Serial.println("Time synchronized");
-    }
-    else 
-    {
-        Serial.println("Time sync failed, will retry later.");
-    }
-    setInterval(3600);
-    setDebug(ezDebugLevel_t::NONE);
 
     // Start update task on core 0
     xTaskCreatePinnedToCore([](void* param)
@@ -64,6 +49,13 @@ void DisplayManager::update()
     float targetTemp = mode == "eco" ? dataManager.getEcoTemp() : dataManager.getTargetTemp();
     float humidity = round(thermostat.getCurrentHumidity());
     bool heatingActive = thermostat.getStatus().heaterActive;
+
+    // Refresh immediately when time first syncs
+    if (timeManager.checkAndClearJustSynced())
+    {
+        refreshDisplay(currentTemp, targetTemp, humidity, mode, heatingActive);
+        return;
+    }
 
     // Refresh if heatingActive or targetTemp changed or mode changed
     if (heatingActive != lastHeatingActive || targetTemp != lastTargetTemp || mode != lastMode) 
@@ -254,19 +246,20 @@ void DisplayManager::drawLeafIcon(String mode)
     }
 }
 
-void DisplayManager::drawDate() 
+void DisplayManager::drawDate()
 {
     String dateString = "";
 
-    if (timeStatus() == timeSet) 
+    if (timeManager.isSynced())
     {
-        dateString += dataManager.getLanguagePack()->days[timezone.weekday()];
+        Timezone& tz = timeManager.getTimezone();
+        dateString += dataManager.getLanguagePack()->days[tz.weekday()];
         dateString += ", ";
-        dateString += timezone.day();
+        dateString += tz.day();
         dateString += " ";
-        dateString += dataManager.getLanguagePack()->months[timezone.month() - 1];
+        dateString += dataManager.getLanguagePack()->months[tz.month() - 1];
     }
-    else 
+    else
     {
         dateString = "?";
     }

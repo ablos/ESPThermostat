@@ -1,45 +1,14 @@
 #include <web.h>
 
-SimpleWebServer::SimpleWebServer() : server(80), ssid(WIFI_SSID), password(WIFI_PASS) {}
+SimpleWebServer::SimpleWebServer() : server(80) {}
 
-bool SimpleWebServer::begin() 
+bool SimpleWebServer::begin()
 {
     if (initialized)
         return true;
 
     Serial.println("Starting web server...");
-    
-    // Connect to WiFi
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-    
-    Serial.print("Connecting to WiFi");
-    int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) 
-    {
-        delay(1000);
-        Serial.print(".");
-        attempts++;
-    }
-    
-    if (WiFi.status() != WL_CONNECTED)
-    {
-        Serial.println("\nWiFi connection failed!");
-        return false;
-    }
-    
-    Serial.println();
-    Serial.println("WiFi connected!");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-    
-    // Setup mDNS
-    if (MDNS.begin("thermostat")) 
-    {
-        Serial.println("mDNS responder started");
-        Serial.println("You can access via: http://thermostat.local");
-    }
-    
+
     // Initialize LittleFS
     if (!LittleFS.begin(true))
     {
@@ -170,19 +139,9 @@ bool SimpleWebServer::begin()
     return true;
 }
 
-bool SimpleWebServer::isInitialized() 
+bool SimpleWebServer::isInitialized()
 {
     return initialized;
-}
-
-bool SimpleWebServer::isConnected() 
-{
-    return WiFi.status() == WL_CONNECTED;
-}
-
-String SimpleWebServer::getIP() 
-{
-    return WiFi.localIP().toString();
 }
 
 // =============================================================================

@@ -7,6 +7,8 @@
 #include <api.h>
 #include <display.h>
 #include <buttons.h>
+#include <network.h>
+#include <time_manager.h>
 
 void setup()
 {
@@ -26,22 +28,25 @@ void setup()
     // Initialize buttons
     ButtonManager::getInstance().begin();
 
+    // Initialize network manager
+    NetworkManager::getInstance().begin();
+
+    // Initialize time manager
+    TimeManager::getInstance().begin();
+
     // Initialize eInk display
     DisplayManager::getInstance().begin();
 
     // Initialize Web Server
-    if (!SimpleWebServer::getInstance().begin())
-    {
-        Serial.println("Failed to start web server!");
-        while(1)
-            delay(1000);
-    }
+    SimpleWebServer::getInstance().begin();
 
-    Serial.println("Webserver started successfully!");
+    Serial.println("Setup complete!");
 }
 
 void loop()
 {
+    NetworkManager::getInstance().update();
+    TimeManager::getInstance().update();
     Thermostat::getInstance().update();
     ButtonManager::getInstance().update();
 

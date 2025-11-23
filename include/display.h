@@ -7,24 +7,24 @@
 #include <config.h>
 #include <data.h>
 #include <thermostat.h>
+#include <time_manager.h>
 #include <inter_extrabold.h>
 #include <inter_semibold.h>
 #include <icons.h>
-#include <ezTime.h>
 #include <WiFi.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-class DisplayManager 
+class DisplayManager
 {
     private:
         DataManager& dataManager = DataManager::getInstance();
         Thermostat& thermostat = Thermostat::getInstance();
+        TimeManager& timeManager = TimeManager::getInstance();
 
         bool initialized = false;
 
         GxEPD2_3C<GxEPD2_290_C90c, GxEPD2_290_C90c::HEIGHT> *display;
-        Timezone timezone;
         uint8_t partialRefreshCount;
 
         const int targetTempIconSize = 18;

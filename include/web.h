@@ -3,42 +3,37 @@
 
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
-#include <ESPmDNS.h>
 #include <LittleFS.h>
 #include <api.h>
-#include <secrets.h>
 
-class SimpleWebServer {
-private:
-    APIHandler &apiHandler = APIHandler::getInstance();
-    bool initialized = false;
+class SimpleWebServer
+{
+    private:
+        APIHandler &apiHandler = APIHandler::getInstance();
+        bool initialized = false;
 
-    AsyncWebServer server;
-    const char* ssid;
-    const char* password;
+        AsyncWebServer server;
 
-    // Route handlers
-    void handleStatus(AsyncWebServerRequest *request);
-    void handleNotFound(AsyncWebServerRequest *request);
+        // Route handlers
+        void handleStatus(AsyncWebServerRequest *request);
+        void handleNotFound(AsyncWebServerRequest *request);
 
-    SimpleWebServer();
+        SimpleWebServer();
 
-public:
-    // Singleton accessor
-    static SimpleWebServer& getInstance() 
-    {
-        static SimpleWebServer instance;
-        return instance;
-    }
-    
-    // Delete copy constructor and assignment operator
-    SimpleWebServer(const SimpleWebServer &) = delete;
-    SimpleWebServer &operator=(const SimpleWebServer &) = delete;
+    public:
+        // Singleton accessor
+        static SimpleWebServer& getInstance()
+        {
+            static SimpleWebServer instance;
+            return instance;
+        }
 
-    bool begin();
-    bool isConnected();
-    String getIP();
-    bool isInitialized();
+        // Delete copy constructor and assignment operator
+        SimpleWebServer(const SimpleWebServer &) = delete;
+        SimpleWebServer &operator=(const SimpleWebServer &) = delete;
+
+        bool begin();
+        bool isInitialized();
 };
 
 #endif
