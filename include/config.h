@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 // Module settings
-#define USE_MQTT false
-#define USE_WEB true
+#define USE_MQTT true
+#define USE_WEB false
 
 // AHT Sensor I2C pins
 #define AHT_SDA 21
