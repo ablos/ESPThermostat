@@ -13,7 +13,7 @@ bool ButtonManager::begin()
     }
 
     // Set up MODE button
-    modeBtn.setup(BTN_MODE, INPUT, true);
+    modeBtn.setup(BTN_MODE, INPUT_PULLUP, true);
     modeBtn.attachClick(modeSingleClickEvent);
     modeBtn.attachLongPressStart(modeLongClickEvent);
 

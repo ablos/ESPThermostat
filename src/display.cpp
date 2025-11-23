@@ -21,7 +21,7 @@ bool DisplayManager::begin()
     // Initialize eInk display
     display = new GxEPD2_3C<GxEPD2_290_C90c, GxEPD2_290_C90c::HEIGHT>(GxEPD2_290_C90c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
     display->init(115200);
-    display->setRotation(1);
+    display->setRotation(3);
 
     // Start update task on core 0
     xTaskCreatePinnedToCore([](void* param)
