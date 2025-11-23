@@ -1,9 +1,18 @@
 #include <display.h>
 
-DisplayManager::DisplayManager(DataManager* dm, Thermostat* ts) : dataManager(dm), thermostat(ts) {}
+DisplayManager::DisplayManager() {}
 
-void DisplayManager::begin() 
+bool DisplayManager::begin() 
 {
+    if (initialized)
+        return true;
+        
+    if (!dataManager.isInitialized())
+        dataManager.begin();
+        
+    if (!thermostat.isInitialized())
+        thermostat.begin();
+
     Serial.println("Initializing display...");
     
     // Initialize SPI with custom pins
@@ -16,7 +25,7 @@ void DisplayManager::begin()
     
     // Initialize time
     waitForSync(5);
-    timezone.setLocation(dataManager->getTimezone());
+    timezone.setLocation(dataManager.getTimezone());
 
     if (timeStatus() == timeSet) 
     {
@@ -37,6 +46,8 @@ void DisplayManager::begin()
     }, "DisplayUpdateTask", 8192, this, 1, NULL, 0);
 
     Serial.println("Display initialized!");
+    initialized = true;
+    return true;
 }
 
 void DisplayManager::update() 
@@ -48,11 +59,11 @@ void DisplayManager::update()
     }
 
     // Read out current status
-    String mode = dataManager->getMode();
-    float currentTemp = round(thermostat->getCurrentTemp() * 2) / 2;
-    float targetTemp = mode == "eco" ? dataManager->getEcoTemp() : dataManager->getTargetTemp();
-    float humidity = round(thermostat->getCurrentHumidity());
-    bool heatingActive = thermostat->getStatus().heaterActive;
+    String mode = dataManager.getMode();
+    float currentTemp = round(thermostat.getCurrentTemp() * 2) / 2;
+    float targetTemp = mode == "eco" ? dataManager.getEcoTemp() : dataManager.getTargetTemp();
+    float humidity = round(thermostat.getCurrentHumidity());
+    bool heatingActive = thermostat.getStatus().heaterActive;
 
     // Refresh if heatingActive or targetTemp changed or mode changed
     if (heatingActive != lastHeatingActive || targetTemp != lastTargetTemp || mode != lastMode) 
@@ -65,14 +76,19 @@ void DisplayManager::update()
     }
     
     // Refresh after minimum interval length and if current temp or humidity changed enough
-    if (millis() - lastRefresh >= (dataManager->getEpdRefreshRate() * 1000)
-        && (abs(currentTemp - lastCurrentTemp) >= dataManager->getTempChangeThreshold()
-            || abs(humidity - lastHumidity) >= dataManager->getHumidityChangeThreshold())) 
+    if (millis() - lastRefresh >= (dataManager.getEpdRefreshRate() * 1000)
+        && (abs(currentTemp - lastCurrentTemp) >= dataManager.getTempChangeThreshold()
+            || abs(humidity - lastHumidity) >= dataManager.getHumidityChangeThreshold())) 
     {
         refreshDisplay(currentTemp, targetTemp, humidity, mode, heatingActive);
         lastRefresh = millis();
         return;
     }
+}
+
+bool DisplayManager::isInitialized() 
+{
+    return initialized;
 }
 
 void DisplayManager::updateTask() 
@@ -244,11 +260,11 @@ void DisplayManager::drawDate()
 
     if (timeStatus() == timeSet) 
     {
-        dateString += dataManager->getLanguagePack()->days[timezone.weekday()];
+        dateString += dataManager.getLanguagePack()->days[timezone.weekday()];
         dateString += ", ";
         dateString += timezone.day();
         dateString += " ";
-        dateString += dataManager->getLanguagePack()->months[timezone.month() - 1];
+        dateString += dataManager.getLanguagePack()->months[timezone.month() - 1];
     }
     else 
     {

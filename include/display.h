@@ -18,8 +18,10 @@
 class DisplayManager 
 {
     private:
-        DataManager* dataManager;
-        Thermostat* thermostat;
+        DataManager& dataManager = DataManager::getInstance();
+        Thermostat& thermostat = Thermostat::getInstance();
+
+        bool initialized = false;
 
         GxEPD2_3C<GxEPD2_290_C90c, GxEPD2_290_C90c::HEIGHT> *display;
         Timezone timezone;
@@ -54,11 +56,24 @@ class DisplayManager
 
         void updateTask();
 
-    public:
-        DisplayManager(DataManager* dm, Thermostat* ts);
+        DisplayManager();
 
-        void begin();
+    public:
+        // Singleton accessor
+        static DisplayManager& getInstance() 
+        {
+            static DisplayManager instance;
+            return instance;
+        }
+        
+        // Delete copy constructor and assignment operator
+        DisplayManager(const DisplayManager &) = delete;
+        DisplayManager &operator=(const DisplayManager &) = delete;
+
+        bool begin();
         void update();
+
+        bool isInitialized();
 };
 
 #endif

@@ -9,8 +9,9 @@
 class ButtonManager 
 {
     private:
-        DataManager *dataManager;
-        static ButtonManager *instance;
+        DataManager& dataManager = DataManager::getInstance();
+
+        bool initialized = false;
 
         OneButton modeBtn;
         OneButton tUpBtn;
@@ -30,12 +31,24 @@ class ButtonManager
 
         static void progSingleClickEvent();
         void handleProgSingleClick();
+        
+        ButtonManager();
 
     public:
-        ButtonManager(DataManager *dm);
+        // Singleton accessor
+        static ButtonManager& getInstance() 
+        {
+            static ButtonManager instance;
+            return instance;
+        }
+        
+        // Delete copy constructor and assignment operator
+        ButtonManager(const ButtonManager &) = delete;
+        ButtonManager &operator=(const ButtonManager &) = delete;
 
-        void begin();
+        bool begin();
         void update();
+        bool isInitialized();
 };
 
 #endif

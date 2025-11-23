@@ -10,14 +10,14 @@
 class APIHandler 
 {
     private:
-        DataManager *dataManager;
-        Thermostat *thermostat;
+        DataManager& dataManager = DataManager::getInstance();
+        Thermostat& thermostat = Thermostat::getInstance();
 
         String handleError(const char *errorMessage);
 
         template<typename T>
         String handleGet(const char *key, T value) {
-            if (!(dataManager && dataManager->isInitialized()))
+            if (!(dataManager.isInitialized()))
                 return handleError("Data manager not initialized");
 
             DynamicJsonDocument doc(128);
@@ -30,7 +30,7 @@ class APIHandler
 
         template<typename T>
         String handleSet(const String& requestBody, const char *key, bool (DataManager::*setter)(T)) {
-            if (!(dataManager && dataManager->isInitialized()))
+            if (!(dataManager.isInitialized()))
                 return handleError("Data manager not initialized");
 
             DynamicJsonDocument doc(256);
@@ -44,15 +44,26 @@ class APIHandler
 
             T value = doc[key];
 
-            if ((dataManager->*setter)(value))
+            if ((dataManager.*setter)(value))
                 return handleStatus();
             else
                 return handleError("Failed to set value");
         }
+        
+        APIHandler();
 
     public:
-        APIHandler(DataManager *dm, Thermostat *thermo);
+        // Singleton accessor
+        static APIHandler& getInstance() 
+        {
+            static APIHandler instance;
+            return instance;
+        }
         
+        // Delete copy constructor and assignment operator
+        APIHandler(const APIHandler &) = delete;
+        APIHandler &operator=(const APIHandler &) = delete;
+
         // API Endpoint Handlers
         String handleStatus();
 

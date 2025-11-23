@@ -1,9 +1,12 @@
 #include <web.h>
 
-SimpleWebServer::SimpleWebServer(const char* wifi_ssid, const char* wifi_password, APIHandler* api) : server(80), ssid(wifi_ssid), password(wifi_password), apiHandler(api) {}
+SimpleWebServer::SimpleWebServer() : server(80), ssid(WIFI_SSID), password(WIFI_PASS) {}
 
 bool SimpleWebServer::begin() 
 {
+    if (initialized)
+        return true;
+
     Serial.println("Starting web server...");
     
     // Connect to WiFi
@@ -48,84 +51,84 @@ bool SimpleWebServer::begin()
     
     server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request)
     {
-        String response = apiHandler->handleStatus();
+        String response = apiHandler.handleStatus();
         request->send(200, "application/json", response);
     });
     
     server.on("/api/temperature", HTTP_GET, [this](AsyncWebServerRequest *request) 
     {
-       String response = apiHandler->handleGetCurrentTemperature();
+       String response = apiHandler.handleGetCurrentTemperature();
        request->send(200, "application/json", response); 
     });
     
     server.on("/api/humidity", HTTP_GET, [this](AsyncWebServerRequest *request) 
     {
-       String response = apiHandler->handleGetCurrentHumidity();
+       String response = apiHandler.handleGetCurrentHumidity();
        request->send(200, "application/json", response); 
     });
     
     server.on("/api/target", HTTP_GET, [this](AsyncWebServerRequest *request)
     {
-        String response = apiHandler->handleGetTargetTemperature();
+        String response = apiHandler.handleGetTargetTemperature();
         request->send(200, "application/json", response);
     });
     
     server.on("/api/target/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total)
     {
         String requestBody = String((char*)body, len);
-        String response = apiHandler->handleSetTargetTemperature(requestBody);
+        String response = apiHandler.handleSetTargetTemperature(requestBody);
         request->send(200, "application/json", response);
     });
     
     server.on("/api/eco-temp", HTTP_GET, [this](AsyncWebServerRequest *request)
     {
-        String response = apiHandler->handleGetEcoTemperature();
+        String response = apiHandler.handleGetEcoTemperature();
         request->send(200, "application/json", response);
     });
 
     server.on("/api/eco-temp/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total)
     {
         String requestBody = String((char*)body, len);
-        String response = apiHandler->handleSetEcoTemperature(requestBody);
+        String response = apiHandler.handleSetEcoTemperature(requestBody);
         request->send(200, "application/json", response);
     });
     
     server.on("/api/mode", HTTP_GET, [this](AsyncWebServerRequest *request) 
     {
-        String response = apiHandler->handleGetMode();
+        String response = apiHandler.handleGetMode();
         request->send(200, "application/json", response);
     });
     
     server.on("/api/mode/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total) 
     {
        String requestBody = String((char*)body, len);
-       String response = apiHandler->handleSetMode(requestBody);
+       String response = apiHandler.handleSetMode(requestBody);
        request->send(200, "application/json", response); 
     });
     
     server.on("/api/temperature/max", HTTP_GET, [this](AsyncWebServerRequest *request) 
     {
-        String response = apiHandler->handleGetMaxTemperature();
+        String response = apiHandler.handleGetMaxTemperature();
         request->send(200, "application/json", response);
     });
     
     server.on("/api/temperature/max/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total) 
     {
         String requestBody = String((char*)body, len);
-        String response = apiHandler->handleSetMaxTemperature(requestBody);
+        String response = apiHandler.handleSetMaxTemperature(requestBody);
         request->send(200, "application/json", response);
     });
     
     server.on("/api/temperature/min", HTTP_GET, [this](AsyncWebServerRequest *request) 
     {
-        String response = apiHandler->handleGetMinTemperature();
+        String response = apiHandler.handleGetMinTemperature();
         request->send(200, "application/json", response);
     });
     
     server.on("/api/temperature/min/set", HTTP_POST, [this](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *body, size_t len, size_t index, size_t total) 
     {
         String requestBody = String((char*)body, len);
-        String response = apiHandler->handleSetMinTemperature(requestBody);
+        String response = apiHandler.handleSetMinTemperature(requestBody);
         request->send(200, "application/json", response);
     });
 
@@ -162,7 +165,14 @@ bool SimpleWebServer::begin()
     Serial.println("HTTP server started on port 80");
     Serial.println();
 
+    initialized = true;
+
     return true;
+}
+
+bool SimpleWebServer::isInitialized() 
+{
+    return initialized;
 }
 
 bool SimpleWebServer::isConnected() 

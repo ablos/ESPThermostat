@@ -10,6 +10,9 @@ DataManager::~DataManager()
 
 bool DataManager::begin()
 {
+    if (initialized)
+        return true;
+
     Serial.println("Initializing Data Manager...");
 
     if (!preferences.begin("thermostat", false))

@@ -16,7 +16,7 @@ struct ThermostatStatus
 class Thermostat 
 {
     private:
-        DataManager* dataManager;
+        DataManager& dataManager = DataManager::getInstance();
         ThermostatStatus status;
         Adafruit_AHTX0 aht;
 
@@ -25,14 +25,28 @@ class Thermostat
 
         void updateSensor();
         void controlHeater();
+        
+        Thermostat();
+
+        bool initialized = false;
 
     public:
-        Thermostat(DataManager* dm);
+        // Singleton accessor
+        static Thermostat& getInstance() 
+        {
+            static Thermostat instance;
+            return instance;
+        }
+        
+        // Delete copy constructor and assignment operator
+        Thermostat(const Thermostat &) = delete;
+        Thermostat &operator=(const Thermostat &) = delete;
 
         bool begin();
         void update();
         
         // Status access
+        bool isInitialized();
         ThermostatStatus getStatus();
         float getCurrentTemp();
         float getCurrentHumidity();

@@ -42,11 +42,23 @@ class DataManager
         // Internal helpers
         void setDefaults();
         void saveAllSettings();
-    
-    public:
+        
+        // Private constructor and destructor
         DataManager();
         ~DataManager();
+    
+    public:
+        // Singleton accessor
+        static DataManager& getInstance() 
+        {
+            static DataManager instance;
+            return instance;
+        }
         
+        // Delete copy constructor and assignment operator
+        DataManager(const DataManager &) = delete;
+        DataManager &operator=(const DataManager &) = delete;
+
         // Initialization
         bool begin();
         void reset();

@@ -1,6 +1,6 @@
 #include <api.h>
 
-APIHandler::APIHandler(DataManager* dm, Thermostat* thermo) : dataManager(dm), thermostat(thermo) {}
+APIHandler::APIHandler() {}
 
 String APIHandler::handleError(const char* errorMessage) 
 {
@@ -24,21 +24,21 @@ String APIHandler::handleStatus()
     doc["uptime"] = millis() / 1000;
     
     // Datamanger data
-    if (dataManager && dataManager->isInitialized())
+    if (dataManager.isInitialized())
     {
-        doc["targetTemp"] = dataManager->getTargetTemp();
-        doc["ecoTemp"] = dataManager->getEcoTemp();
-        doc["mode"] = dataManager->getMode();
-        doc["maxTemp"] = dataManager->getMaxTemp();
-        doc["minTemp"] = dataManager->getMinTemp();
+        doc["targetTemp"] = dataManager.getTargetTemp();
+        doc["ecoTemp"] = dataManager.getEcoTemp();
+        doc["mode"] = dataManager.getMode();
+        doc["maxTemp"] = dataManager.getMaxTemp();
+        doc["minTemp"] = dataManager.getMinTemp();
     }
     
     // Thermostat data
-    if (thermostat)
+    if (thermostat.isInitialized())
     {
-        doc["currentTemp"] = thermostat->getCurrentTemp();
-        doc["humidity"] = thermostat->getCurrentHumidity();
-        doc["heaterActive"] = thermostat->getStatus().heaterActive;
+        doc["currentTemp"] = thermostat.getCurrentTemp();
+        doc["humidity"] = thermostat.getCurrentHumidity();
+        doc["heaterActive"] = thermostat.getStatus().heaterActive;
     }
 
     String output;
@@ -50,19 +50,19 @@ String APIHandler::handleStatus()
 
 String APIHandler::handleGetCurrentTemperature() 
 {
-    return handleGet("currentTemp", thermostat->getCurrentTemp());
+    return handleGet("currentTemp", thermostat.getCurrentTemp());
 }
 
 String APIHandler::handleGetCurrentHumidity() 
 {
-    return handleGet("currentHumidity", thermostat->getCurrentHumidity());
+    return handleGet("currentHumidity", thermostat.getCurrentHumidity());
 }
 
 
 
 String APIHandler::handleGetTargetTemperature()
 {
-    return handleGet("targetTemp", dataManager->getTargetTemp());
+    return handleGet("targetTemp", dataManager.getTargetTemp());
 }
 
 String APIHandler::handleSetTargetTemperature(const String& requestBody)
@@ -74,7 +74,7 @@ String APIHandler::handleSetTargetTemperature(const String& requestBody)
 
 String APIHandler::handleGetEcoTemperature()
 {
-    return handleGet("ecoTemp", dataManager->getEcoTemp());
+    return handleGet("ecoTemp", dataManager.getEcoTemp());
 }
 
 String APIHandler::handleSetEcoTemperature(const String& requestBody)
@@ -86,7 +86,7 @@ String APIHandler::handleSetEcoTemperature(const String& requestBody)
 
 String APIHandler::handleGetMode()
 {
-    return handleGet("mode", dataManager->getMode());
+    return handleGet("mode", dataManager.getMode());
 }
 
 String APIHandler::handleSetMode(const String& requestBody) 
@@ -98,7 +98,7 @@ String APIHandler::handleSetMode(const String& requestBody)
 
 String APIHandler::handleGetMaxTemperature() 
 {
-    return handleGet("maxTemp", dataManager->getMaxTemp());
+    return handleGet("maxTemp", dataManager.getMaxTemp());
 }
 
 String APIHandler::handleSetMaxTemperature(const String &requestBody) 
@@ -110,7 +110,7 @@ String APIHandler::handleSetMaxTemperature(const String &requestBody)
 
 String APIHandler::handleGetMinTemperature() 
 {
-    return handleGet("minTemp", dataManager->getMinTemp());
+    return handleGet("minTemp", dataManager.getMinTemp());
 }
 
 String APIHandler:: handleSetMinTemperature(const String &requestBody) 

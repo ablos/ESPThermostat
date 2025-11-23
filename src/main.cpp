@@ -8,38 +8,29 @@
 #include <display.h>
 #include <buttons.h>
 
-DataManager* dataManager;
-Thermostat* thermostat;
-APIHandler* apiHandler;
-SimpleWebServer* webServer;
-DisplayManager* displayManager;
-ButtonManager* buttonManager;
-
 void setup()
 {
     Serial.begin(115200);
     Serial.println();
 
-    // Initialize data manager first
-    dataManager = new DataManager();
-    dataManager->begin();
+    // Initialize data manager
+    DataManager::getInstance().begin();
 
     // Initialize thermostat
-    thermostat = new Thermostat(dataManager);
-    if (!thermostat->begin()) 
+    while (!Thermostat::getInstance().begin()) 
     {
-        Serial.println("Failed to initialize thermostat!");
-        while (1)
-            delay(1000);
+        Serial.println("Failed to initialized thermostat");
+        delay(5000);
     }
+    
+    // Initialize buttons
+    ButtonManager::getInstance().begin();
 
-    // Initialize API handler
-    apiHandler = new APIHandler(dataManager, thermostat);
+    // Initialize eInk display
+    DisplayManager::getInstance().begin();
 
     // Initialize Web Server
-    webServer = new SimpleWebServer(WIFI_SSID, WIFI_PASS, apiHandler);
-    
-    if (!webServer->begin())
+    if (!SimpleWebServer::getInstance().begin())
     {
         Serial.println("Failed to start web server!");
         while(1)
@@ -47,20 +38,12 @@ void setup()
     }
 
     Serial.println("Webserver started successfully!");
-    
-    // Initialize buttons
-    buttonManager = new ButtonManager(dataManager);
-    buttonManager->begin();
-
-    // Initialize eInk display
-    displayManager = new DisplayManager(dataManager, thermostat);
-    displayManager->begin();
 }
 
 void loop()
 {
-    thermostat->update();
-    buttonManager->update();
+    Thermostat::getInstance().update();
+    ButtonManager::getInstance().update();
 
     // Small delay to limit processing power
     // And therefore leaking heat that could affect readings

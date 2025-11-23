@@ -6,11 +6,14 @@
 #include <ESPmDNS.h>
 #include <LittleFS.h>
 #include <api.h>
+#include <secrets.h>
 
 class SimpleWebServer {
 private:
+    APIHandler &apiHandler = APIHandler::getInstance();
+    bool initialized = false;
+
     AsyncWebServer server;
-    APIHandler* apiHandler;
     const char* ssid;
     const char* password;
 
@@ -18,12 +21,24 @@ private:
     void handleStatus(AsyncWebServerRequest *request);
     void handleNotFound(AsyncWebServerRequest *request);
 
+    SimpleWebServer();
+
 public:
-    SimpleWebServer(const char* wifi_ssid, const char* wifi_password, APIHandler* api);
+    // Singleton accessor
+    static SimpleWebServer& getInstance() 
+    {
+        static SimpleWebServer instance;
+        return instance;
+    }
+    
+    // Delete copy constructor and assignment operator
+    SimpleWebServer(const SimpleWebServer &) = delete;
+    SimpleWebServer &operator=(const SimpleWebServer &) = delete;
 
     bool begin();
     bool isConnected();
     String getIP();
+    bool isInitialized();
 };
 
 #endif

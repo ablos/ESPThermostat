@@ -1,13 +1,17 @@
 #include <buttons.h>
 
-ButtonManager *ButtonManager::instance = nullptr;
-ButtonManager::ButtonManager(DataManager *dm) : dataManager(dm) 
-{
-    instance = this;
-}
+ButtonManager::ButtonManager() {}
 
-void ButtonManager::begin() 
+bool ButtonManager::begin() 
 {
+    if (initialized)
+        return true;
+    
+    if (!dataManager.isInitialized()) 
+    {
+        dataManager.begin();
+    }
+
     // Set up MODE button
     modeBtn.setup(BTN_MODE, INPUT, true);
     modeBtn.attachClick(modeSingleClickEvent);
@@ -28,6 +32,11 @@ void ButtonManager::begin()
     // Set up PROG button
     progBtn.setup(BTN_PROG, INPUT, true);
     progBtn.attachClick(progSingleClickEvent);
+
+    Serial.println("Button manager initialized");
+
+    initialized = true;
+    return true;
 }
 
 void ButtonManager::update() 
@@ -38,52 +47,57 @@ void ButtonManager::update()
     progBtn.tick();
 }
 
+bool ButtonManager::isInitialized() 
+{
+    return initialized;
+}
+
 void ButtonManager::modeSingleClickEvent() 
 {
-    if (instance) instance->handleModeSingleClick();
+    getInstance().handleModeSingleClick();
 }
 
 void ButtonManager::handleModeSingleClick() 
 {
     Serial.println("Mode button clicked");
 
-    String mode = dataManager->getMode();
+    String mode = dataManager.getMode();
     
     if (mode == "eco") 
     {
-        dataManager->setMode("on");
+        dataManager.setMode("on");
     }
     
     if (mode == "on") 
     {
-        dataManager->setMode("eco");
+        dataManager.setMode("eco");
     }
 }
 
 void ButtonManager::modeLongClickEvent() 
 {
-    if (instance) instance->handleModeLongClick();
+    getInstance().handleModeLongClick();
 }
 
 void ButtonManager::handleModeLongClick() 
 {
     Serial.println("Mode button long press");
 
-    String mode = dataManager->getMode();
+    String mode = dataManager.getMode();
     
     if (mode != "off") 
     {
-        dataManager->setMode("off");
+        dataManager.setMode("off");
     }
     else 
     {
-        dataManager->setMode("on");
+        dataManager.setMode("on");
     }
 }
 
 void ButtonManager::tempUpClickEvent() 
 {
-    if (instance) instance->handleTempUpClick();
+    getInstance().handleTempUpClick();
 }
 
 void ButtonManager::handleTempUpClick() 
@@ -91,15 +105,15 @@ void ButtonManager::handleTempUpClick()
     Serial.printf("Temp up button pressed %d times", tUpBtn.getNumberClicks());
     Serial.println();
 
-    if (dataManager->getMode() == "on") 
+    if (dataManager.getMode() == "on") 
     {
-        dataManager->setTargetTemp(dataManager->getTargetTemp() + (tUpBtn.getNumberClicks() * 0.5));
+        dataManager.setTargetTemp(dataManager.getTargetTemp() + (tUpBtn.getNumberClicks() * 0.5));
     }
 }
 
 void ButtonManager::tempDownClickEvent() 
 {
-    if (instance) instance->handleTempDownClick();
+    getInstance().handleTempDownClick();
 }
 
 void ButtonManager::handleTempDownClick() 
@@ -107,15 +121,15 @@ void ButtonManager::handleTempDownClick()
     Serial.printf("Temp down button pressed %d times", tDownBtn.getNumberClicks());
     Serial.println();
 
-    if (dataManager->getMode() == "on") 
+    if (dataManager.getMode() == "on") 
     {
-        dataManager->setTargetTemp(dataManager->getTargetTemp() - (tDownBtn.getNumberClicks() * 0.5));
+        dataManager.setTargetTemp(dataManager.getTargetTemp() - (tDownBtn.getNumberClicks() * 0.5));
     }
 }
 
 void ButtonManager::progSingleClickEvent() 
 {
-    if (instance) instance->handleProgSingleClick();
+    getInstance().handleProgSingleClick();
 }
 
 void ButtonManager::handleProgSingleClick() 

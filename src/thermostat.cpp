@@ -1,10 +1,18 @@
 #include <thermostat.h>
 #include <Wire.h>
 
-Thermostat::Thermostat(DataManager* dm) : dataManager(dm) {}
+Thermostat::Thermostat() {}
 
 bool Thermostat::begin()
 {
+    if (initialized)
+        return true;
+
+    if (!dataManager.isInitialized()) 
+    {
+        dataManager.begin();
+    }
+
     pinMode(TRANS_PIN, OUTPUT);
     digitalWrite(TRANS_PIN, LOW);
 
@@ -21,6 +29,7 @@ bool Thermostat::begin()
     updateSensor();
 
     Serial.println("Thermostat initialized!");
+    initialized = true;
     return true;
 }
 
@@ -57,7 +66,7 @@ void Thermostat::controlHeater()
 {
     // Don't do anything when heating is off
     // Only turn off heating to be sure
-    if (dataManager->getMode() == "off")
+    if (dataManager.getMode() == "off")
     {
         digitalWrite(TRANS_PIN, LOW);
         status.heaterActive = false;
@@ -66,14 +75,14 @@ void Thermostat::controlHeater()
 
     // Determine target temperature based on mode
     float targetTemp;
-    if (dataManager->getMode() == "eco")
-        targetTemp = dataManager->getEcoTemp();
+    if (dataManager.getMode() == "eco")
+        targetTemp = dataManager.getEcoTemp();
     else
-        targetTemp = dataManager->getTargetTemp();
+        targetTemp = dataManager.getTargetTemp();
 
     // Turn heater on if temp is below target temp - hysteresis
     // Hysteresis is used to prevent excessive on/off switching
-    if (status.currentTemp < (targetTemp - dataManager->getHysteresis()))
+    if (status.currentTemp < (targetTemp - dataManager.getHysteresis()))
     {
         digitalWrite(TRANS_PIN, HIGH);
         status.heaterActive = true;
@@ -91,6 +100,11 @@ void Thermostat::controlHeater()
             status.heaterActive = false;
         }
     }
+}
+
+bool Thermostat::isInitialized() 
+{
+    return initialized;
 }
 
 ThermostatStatus Thermostat::getStatus() 
