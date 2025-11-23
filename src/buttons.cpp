@@ -2,12 +2,12 @@
 
 ButtonManager::ButtonManager() {}
 
-bool ButtonManager::begin() 
+bool ButtonManager::begin()
 {
     if (initialized)
         return true;
-    
-    if (!dataManager.isInitialized()) 
+
+    if (!dataManager.isInitialized())
     {
         dataManager.begin();
     }
@@ -16,22 +16,28 @@ bool ButtonManager::begin()
     modeBtn.setup(BTN_MODE, INPUT, true);
     modeBtn.attachClick(modeSingleClickEvent);
     modeBtn.attachLongPressStart(modeLongClickEvent);
-    
-    // Set up TEMP UP button
-    tUpBtn.setup(BTN_T_UP, INPUT, true);
-    tUpBtn.attachClick(tempUpClickEvent);
-    tUpBtn.attachDoubleClick(tempUpClickEvent);
-    tUpBtn.attachMultiClick(tempUpClickEvent);
 
-    // Set up TEMP DOWN button
-    tDownBtn.setup(BTN_T_DOWN, INPUT, true);
-    tDownBtn.attachClick(tempDownClickEvent);
-    tDownBtn.attachDoubleClick(tempDownClickEvent);
-    tDownBtn.attachMultiClick(tempDownClickEvent);
-    
-    // Set up PROG button
-    progBtn.setup(BTN_PROG, INPUT, true);
-    progBtn.attachClick(progSingleClickEvent);
+    // Set up TEMP UP button (only if pin is valid)
+    if (BTN_T_UP >= 0) {
+        tUpBtn.setup(BTN_T_UP, INPUT, true);
+        tUpBtn.attachClick(tempUpClickEvent);
+        tUpBtn.attachDoubleClick(tempUpClickEvent);
+        tUpBtn.attachMultiClick(tempUpClickEvent);
+    }
+
+    // Set up TEMP DOWN button (only if pin is valid)
+    if (BTN_T_DOWN >= 0) {
+        tDownBtn.setup(BTN_T_DOWN, INPUT, true);
+        tDownBtn.attachClick(tempDownClickEvent);
+        tDownBtn.attachDoubleClick(tempDownClickEvent);
+        tDownBtn.attachMultiClick(tempDownClickEvent);
+    }
+
+    // Set up PROG button (only if pin is valid)
+    if (BTN_PROG >= 0) {
+        progBtn.setup(BTN_PROG, INPUT, true);
+        progBtn.attachClick(progSingleClickEvent);
+    }
 
     Serial.println("Button manager initialized");
 
@@ -39,12 +45,18 @@ bool ButtonManager::begin()
     return true;
 }
 
-void ButtonManager::update() 
+void ButtonManager::update()
 {
     modeBtn.tick();
-    tUpBtn.tick();
-    tDownBtn.tick();
-    progBtn.tick();
+    if (BTN_T_UP >= 0) {
+        tUpBtn.tick();
+    }
+    if (BTN_T_DOWN >= 0) {
+        tDownBtn.tick();
+    }
+    if (BTN_PROG >= 0) {
+        progBtn.tick();
+    }
 }
 
 bool ButtonManager::isInitialized() 
