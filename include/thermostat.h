@@ -50,6 +50,7 @@ class Thermostat
         ThermostatStatus getStatus();
         float getCurrentTemp();
         float getCurrentHumidity();
+        bool isHeaterActive();
 };
 
 #endif

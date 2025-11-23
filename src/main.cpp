@@ -9,6 +9,7 @@
 #include <buttons.h>
 #include <network.h>
 #include <time_manager.h>
+#include <mqtt.h>
 
 void setup()
 {
@@ -34,6 +35,9 @@ void setup()
     // Initialize time manager
     TimeManager::getInstance().begin();
 
+    // Initialize MQTT manager
+    MQTTManager::getInstance().begin();
+
     // Initialize eInk display
     DisplayManager::getInstance().begin();
 
@@ -47,6 +51,7 @@ void loop()
 {
     NetworkManager::getInstance().update();
     TimeManager::getInstance().update();
+    MQTTManager::getInstance().update();
     Thermostat::getInstance().update();
     ButtonManager::getInstance().update();
 

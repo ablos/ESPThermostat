@@ -121,3 +121,8 @@ float Thermostat::getCurrentHumidity()
 {
     return status.currentHumidity;
 }
+
+bool Thermostat::isHeaterActive() 
+{
+    return status.heaterActive;
+}

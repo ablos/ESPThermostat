@@ -19,7 +19,7 @@ class NetworkManager
 
         WiFiState state = WiFiState::DISCONNECTED;
         unsigned long connectionStartTime = 0;
-        const unsigned long CONNECTION_TIMEOUT = 20000; // 20 seconds
+        const unsigned long CONNECTION_TIMEOUT = 30000; // 30 seconds
         const unsigned long RETRY_DELAY = 30000; // 30 seconds between retries
         unsigned long lastRetryTime = 0;
 
