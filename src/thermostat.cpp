@@ -64,6 +64,9 @@ void Thermostat::updateSensor()
 
 void Thermostat::controlHeater()
 {
+    // Get temperature with temperature offset
+    float adjustedTemp = getCurrentTemp();
+    
     // Don't do anything when heating is off
     // Only turn off heating to be sure
     if (dataManager.getMode() == "off")
@@ -82,20 +85,20 @@ void Thermostat::controlHeater()
 
     // Turn heater on if temp is below target temp - hysteresis
     // Hysteresis is used to prevent excessive on/off switching
-    if (status.currentTemp < (targetTemp - dataManager.getHysteresis()))
+    if (adjustedTemp < (targetTemp - dataManager.getHysteresis()))
     {
         digitalWrite(TRANS_PIN, HIGH);
         status.heaterActive = true;
     }
 
     // Turn heater off if temp is above or equal to target temp
-    if (status.currentTemp >= targetTemp)
+    if (adjustedTemp >= targetTemp)
     {
         digitalWrite(TRANS_PIN, LOW);
         
         // Only set heater status to inactive when temperature is marginally larger than the set temperature
         // so the status indicators only disappear when the temperature is higher due to the environment instead of heater
-        if (status.currentTemp > targetTemp + 1) 
+        if (adjustedTemp > targetTemp + 1) 
         {
             status.heaterActive = false;
         }
